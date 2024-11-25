@@ -28,7 +28,7 @@ public class Main {
           in = clientSocket.getInputStream();
           // Write the PONG message to the client
           while(in != null) {
-              out.write("+pong\r\n".getBytes());
+              out.write("+PONG\r\n".getBytes());
               out.flush();
               in = clientSocket.getInputStream();
           }
