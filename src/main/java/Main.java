@@ -3,6 +3,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main {
   public static void main(String[] args){
@@ -14,32 +16,33 @@ public class Main {
         Socket clientSocket = null;
         OutputStream out = null;
         InputStream in = null;
+        ExecutorService executor = null;
+        int threadPoolSize = 10;
         int port = 6379;
         try {
           serverSocket = new ServerSocket(port);
           // Since the tester restarts your program quite often, setting SO_REUSEADDR
           // ensures that we don't run into 'Address already in use' errors
           serverSocket.setReuseAddress(true);
-          // Wait for connection from client.
-          clientSocket = serverSocket.accept();
-          // Get the output stream of the client sockets
-          out = clientSocket.getOutputStream();
-          // Get the input stream of the client sockets
-          in = clientSocket.getInputStream();
-          // create a byte array to store the response
-            byte[] response = new byte[1024];
-            int bytesRead;
-            // read the input stream
-            while ((bytesRead = in.read(response)) != -1) {
-                String command = new String(response, 0, bytesRead);
-                System.out.println("Command: " + command);
-                out.write("+PONG\r\n".getBytes());
-                out.flush();
-            }
+          //Create thread pool
+          executor = Executors.newFixedThreadPool(threadPoolSize);
+
+          while (true) {
+              // Wait for connection from client.
+              clientSocket = serverSocket.accept();
+              executor.submit(new ClientTask(clientSocket));
+          }
+
         } catch (IOException e) {
           System.out.println("IOException: " + e.getMessage());
         } finally {
           try {
+              if (executor != null){
+                  executor.shutdown();
+              }
+            if (serverSocket != null) {
+              serverSocket.close();
+            }
             if (clientSocket != null) {
               clientSocket.close();
             }
