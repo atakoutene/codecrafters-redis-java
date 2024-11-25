@@ -26,12 +26,16 @@ public class Main {
           out = clientSocket.getOutputStream();
           // Get the input stream of the client sockets
           in = clientSocket.getInputStream();
-          // Write the PONG message to the client
-          while(in != null) {
-              out.write("+PONG\r\n".getBytes());
-              out.flush();
-              in = clientSocket.getInputStream();
-          }
+          // create a byte array to store the response
+            byte[] response = new byte[1024];
+            int bytesRead;
+            // read the input stream
+            while ((bytesRead = in.read(response)) != -1) {
+                String command = new String(response, 0, bytesRead);
+                System.out.println("Command: " + command);
+                out.write("PONG\r\n".getBytes());
+                out.flush();
+            }
         } catch (IOException e) {
           System.out.println("IOException: " + e.getMessage());
         } finally {
