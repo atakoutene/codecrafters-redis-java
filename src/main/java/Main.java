@@ -20,8 +20,7 @@ public class Main {
           serverSocket.setReuseAddress(true);
           // Wait for connection from client.
           clientSocket = serverSocket.accept();
-          clientSocket = serverSocket.accept();
-          // Get the output stream of the client socket
+          // Get the output stream of the client sockets
           out = clientSocket.getOutputStream();
           out.write("+PONG\\r\\n".getBytes());
         } catch (IOException e) {
