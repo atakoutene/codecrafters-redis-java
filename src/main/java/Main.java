@@ -33,7 +33,7 @@ public class Main {
             while ((bytesRead = in.read(response)) != -1) {
                 String command = new String(response, 0, bytesRead);
                 System.out.println("Command: " + command);
-                out.write("PONG\r\n".getBytes());
+                out.write("+PONG\r\n".getBytes());
                 out.flush();
             }
         } catch (IOException e) {
