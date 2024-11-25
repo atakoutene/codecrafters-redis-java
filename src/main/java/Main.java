@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -12,6 +13,7 @@ public class Main {
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
         OutputStream out = null;
+        InputStream in = null;
         int port = 6379;
         try {
           serverSocket = new ServerSocket(port);
@@ -22,8 +24,13 @@ public class Main {
           clientSocket = serverSocket.accept();
           // Get the output stream of the client sockets
           out = clientSocket.getOutputStream();
-          for(int i = 0; i < 2; i++) {
+          // Get the input stream of the client sockets
+          in = clientSocket.getInputStream();
+          // Write the PONG message to the client
+          while(in != null) {
               out.write("+PONG\r\n".getBytes());
+              out.flush();
+              in = clientSocket.getInputStream();
           }
         } catch (IOException e) {
           System.out.println("IOException: " + e.getMessage());
