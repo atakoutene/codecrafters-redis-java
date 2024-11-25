@@ -22,7 +22,7 @@ public class Main {
           clientSocket = serverSocket.accept();
           // Get the output stream of the client sockets
           out = clientSocket.getOutputStream();
-          out.write("+PONG\\r\\n".getBytes());
+          out.write("+PONG\r\n".getBytes());
         } catch (IOException e) {
           System.out.println("IOException: " + e.getMessage());
         } finally {
