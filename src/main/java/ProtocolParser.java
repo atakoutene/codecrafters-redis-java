@@ -1,15 +1,8 @@
 public class ProtocolParser {
-    private String command;
-    private String[] subCommands;
 
-    public ProtocolParser(String command) {
-        this.command = command;
-    }
-
-    //split the command into an array of strings
-    public String parse() {
+    public static String parse(String command) {
         if (command.toUpperCase().contains("ECHO")) {
-            subCommands = command.split("\r\n");
+            String[] subCommands = command.split("\r\n");
             int n = subCommands.length;
             int length = Integer.parseInt(subCommands[n - 2].substring(1));
             String result = subCommands[n - 1].substring(0, length);
