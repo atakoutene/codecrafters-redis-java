@@ -13,6 +13,7 @@ public class ClientTask implements Runnable{
     public void run() {
         InputStream in = null;
         OutputStream out = null;
+        ProtocolParser protocolParser;
         try{
             in = clientSocket.getInputStream();
             out = clientSocket.getOutputStream();
@@ -20,8 +21,9 @@ public class ClientTask implements Runnable{
             int bytesRead;
             while((bytesRead = in.read(bytes)) != -1) {
                 String command = new String(bytes, 0, bytesRead);
-                System.out.println("Command: " + command);
-                out.write("+PONG\r\n".getBytes());
+                protocolParser = new ProtocolParser(command);
+//                System.out.println("Command: " + command);
+                out.write(protocolParser.parse().getBytes());
                 out.flush();
             }
 
