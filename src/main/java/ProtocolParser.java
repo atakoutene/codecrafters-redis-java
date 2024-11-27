@@ -58,10 +58,10 @@ public class ProtocolParser {
         logger.info("Handling SET command");
         String key = subCommands[3];
         String value = subCommands[5];
-        if (subCommands.length > 6 && subCommands[6].equalsIgnoreCase("PX")) {
+        if (subCommands.length > 6 && subCommands[7].equalsIgnoreCase("PX")) {
             logger.info("Setting with expiry");
-            logger.info("Setting with expiry " + subCommands[8]);
-            long ttl = Long.parseLong(subCommands[8]);
+            logger.info("Setting with expiry " + subCommands[9]);
+            long ttl = Long.parseLong(subCommands[9]);
             redisServer.setWithExpiry(key, value, ttl);
         } else {
             redisServer.set(key, value);
