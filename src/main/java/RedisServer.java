@@ -21,7 +21,7 @@ public class RedisServer {
 
     public void setWithExpiry(String key, String value, long ttl) {
         logger.info("Setting value for key: " + key + " with TTL: " + ttl + " milliseconds");
-        dataStore.put(key, value);
+        set(key, value);
         Runnable task = () -> {
             dataStore.remove(key);
             logger.info("Key expired and removed: " + key);
