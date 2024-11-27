@@ -1,39 +1,61 @@
+import java.util.Arrays;
+
 public class ProtocolParser {
 
-    public static String parse(String command) {
-        if (command.toUpperCase().contains("ECHO")) {
-            String[] subCommands = command.split("\r\n");
-            int n = subCommands.length;
-            int length = Integer.parseInt(subCommands[n - 2].substring(1));
-            String result = subCommands[n - 1].substring(0, length);
-            return "$" + length + "\r\n" + result + "\r\n";
+    private static final String ECHO = "ECHO";
+    private static final String PING = "PING";
+    private static final String GET = "GET";
+    private static final String SET = "SET";
 
-        } else if (command.toUpperCase().contains("PING")) {
-            return "+PONG\r\n";
-        } else if (command.toUpperCase().contains("GET")) {
-            return "$5\r\nhello\r\n";
-        } else if (command.toUpperCase().contains("SET")) {
-            return "+OK\r\n";
-        } else if (command.toUpperCase().contains("INCR")) {
-            return ":1\r\n";
-        } else if (command.toUpperCase().contains("DECR")) {
-            return ":1\r\n";
-        } else if (command.toUpperCase().contains("INCRBY")) {
-            return ":2\r\n";
-        } else if (command.toUpperCase().contains("DECRBY")) {
-            return ":2\r\n";
-        } else if (command.toUpperCase().contains("DEL")) {
-            return ":1\r\n";
-        } else if (command.toUpperCase().contains("EXISTS")) {
-            return ":1\r\n";
-        } else if (command.toUpperCase().contains("KEYS")) {
-            return "*1\r\n$5\r\nhello\r\n";
-        } else if (command.toUpperCase().contains("FLUSHALL")) {
-            return "+OK\r\n";
+    private final RedisServer redisServer;
+
+    public ProtocolParser(RedisServer redisServer) {
+        this.redisServer = redisServer;
+    }
+
+    public String parse(String command) {
+        String[] tmp = command.split("\r\n");
+        String[] subCommands = Arrays.copyOfRange(tmp, 1, tmp.length);
+        String upperCommand = command.toUpperCase();
+
+        if (upperCommand.contains(ECHO)) {
+            return handleEcho(tmp);
+        } else if (upperCommand.contains(PING)) {
+            return handlePing();
+        } else if (upperCommand.contains(GET)) {
+            return handleGet(subCommands);
+        } else if (upperCommand.contains(SET)) {
+            return handleSet(subCommands);
         } else {
-            return "-ERR unknown command '" + command + "'\r\n";
+            return handleUnknownCommand(command);
         }
     }
 
+    private String handleEcho(String[] subCommands) {
+        int n = subCommands.length;
+        int length = Integer.parseInt(subCommands[n - 2].substring(1));
+        String result = subCommands[n - 1].substring(0, length);
+        return "$" + length + "\r\n" + result + "\r\n";
+    }
 
+    private String handlePing() {
+        return "+PONG\r\n";
+    }
+
+    private String handleGet(String[] subCommands) {
+        String key = subCommands[3];
+        String value = redisServer.get(key);
+        return value == null ? "$-1\r\n" : String.format("$%d\r\n%s\r\n", value.length(), value);
+    }
+
+    private String handleSet(String[] subCommands) {
+        String key = subCommands[3];
+        String value = subCommands[5];
+        redisServer.set(key, value);
+        return "+OK\r\n";
+    }
+
+    private String handleUnknownCommand(String command) {
+        return "-ERR unknown command '" + command + "'\r\n";
+    }
 }
