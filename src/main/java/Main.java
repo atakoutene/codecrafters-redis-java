@@ -3,12 +3,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main {
     private static final RedisServer redisServer = new RedisServer();
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
-        System.out.println("Logs from your program will appear here!");
+        logger.info("Server is starting...");
 
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
@@ -22,11 +25,12 @@ public class Main {
 
             while (true) {
                 clientSocket = serverSocket.accept();
+                logger.info("Accepted connection from " + clientSocket.getInetAddress());
                 executor.submit(new ClientTask(clientSocket, redisServer));
             }
 
         } catch (IOException e) {
-            System.out.println("IOException: " + e.getMessage());
+            logger.log(Level.SEVERE, "IOException occurred", e);
         } finally {
             try {
                 if (executor != null) {
@@ -39,7 +43,7 @@ public class Main {
                     clientSocket.close();
                 }
             } catch (IOException e) {
-                System.out.println("IOException: " + e.getMessage());
+                logger.log(Level.SEVERE, "IOException occurred during cleanup", e);
             }
         }
     }

@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 public class ProtocolParser {
 
@@ -6,6 +7,7 @@ public class ProtocolParser {
     private static final String PING = "PING";
     private static final String GET = "GET";
     private static final String SET = "SET";
+    private static final Logger logger = Logger.getLogger(ProtocolParser.class.getName());
 
     private final RedisServer redisServer;
 
@@ -14,6 +16,7 @@ public class ProtocolParser {
     }
 
     public String parse(String command) {
+        logger.info("Parsing command: " + command);
         String[] tmp = command.split("\r\n");
         String[] subCommands = Arrays.copyOfRange(tmp, 1, tmp.length);
         String upperCommand = command.toUpperCase();
@@ -32,6 +35,7 @@ public class ProtocolParser {
     }
 
     private String handleEcho(String[] subCommands) {
+        logger.info("Handling ECHO command");
         int n = subCommands.length;
         int length = Integer.parseInt(subCommands[n - 2].substring(1));
         String result = subCommands[n - 1].substring(0, length);
@@ -39,23 +43,32 @@ public class ProtocolParser {
     }
 
     private String handlePing() {
+        logger.info("Handling PING command");
         return "+PONG\r\n";
     }
 
     private String handleGet(String[] subCommands) {
+        logger.info("Handling GET command");
         String key = subCommands[3];
         String value = redisServer.get(key);
         return value == null ? "$-1\r\n" : String.format("$%d\r\n%s\r\n", value.length(), value);
     }
 
     private String handleSet(String[] subCommands) {
+        logger.info("Handling SET command");
         String key = subCommands[3];
         String value = subCommands[5];
-        redisServer.set(key, value);
+        if (subCommands.length > 6 && subCommands[6].equalsIgnoreCase("EX")) {
+            long ttl = Long.parseLong(subCommands[7]);
+            redisServer.setWithExpiry(key, value, ttl);
+        } else {
+            redisServer.set(key, value);
+        }
         return "+OK\r\n";
     }
 
     private String handleUnknownCommand(String command) {
+        logger.warning("Unknown command: " + command);
         return "-ERR unknown command '" + command + "'\r\n";
     }
 }
