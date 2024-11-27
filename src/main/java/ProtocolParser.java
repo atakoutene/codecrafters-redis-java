@@ -58,7 +58,7 @@ public class ProtocolParser {
         logger.info("Handling SET command");
         String key = subCommands[3];
         String value = subCommands[5];
-        if (subCommands.length > 6 && subCommands[6].equalsIgnoreCase("EX")) {
+        if (subCommands.length > 6 && subCommands[6].equalsIgnoreCase("PX")) {
             long ttl = Long.parseLong(subCommands[7]);
             redisServer.setWithExpiry(key, value, ttl);
         } else {
