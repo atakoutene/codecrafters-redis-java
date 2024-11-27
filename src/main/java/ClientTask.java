@@ -10,9 +10,9 @@ public class ClientTask implements Runnable {
     private final ProtocolParser protocolParser;
     private static final Logger logger = Logger.getLogger(ClientTask.class.getName());
 
-    public ClientTask(Socket clientSocket, RedisServer redisServer) {
+    public ClientTask(Socket clientSocket, Cache cache) {
         this.clientSocket = clientSocket;
-        this.protocolParser = new ProtocolParser(redisServer);
+        this.protocolParser = new ProtocolParser(cache);
     }
 
     @Override

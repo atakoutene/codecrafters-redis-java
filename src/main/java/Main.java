@@ -7,7 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main {
-    private static final RedisServer redisServer = new RedisServer();
+    private static final Cache CACHE = new Cache();
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
@@ -26,7 +26,7 @@ public class Main {
             while (true) {
                 clientSocket = serverSocket.accept();
                 logger.info("Accepted connection from " + clientSocket.getInetAddress());
-                executor.submit(new ClientTask(clientSocket, redisServer));
+                executor.submit(new ClientTask(clientSocket, CACHE));
             }
 
         } catch (IOException e) {
