@@ -54,7 +54,7 @@ public class ProtocolParser {
      */
     private String handleConfigGet(String[] subCommands) {
         logger.info("Handling CONFIG GET command");
-        String parameter = subCommands[4];
+        String parameter = subCommands[6];
         String value = config.getConfig(parameter);
 
         if (value != null) {

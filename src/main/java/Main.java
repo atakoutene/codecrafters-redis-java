@@ -9,15 +9,14 @@ import java.util.logging.Logger;
 
 public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
+    private static final Config config = new Config();
 
     public static void main(String[] args) {
-        Config config = new Config();
-
         // Parse system arguments
         for (int i = 0; i < args.length; i++) {
-            if ("--dir".equals(args[i]) && i + 1 < args.length) {
+            if ("--dir".equals(args[i])) {
                 config.setConfig("dir", args[i + 1]);
-            } else if ("--dbfilename".equals(args[i]) && i + 1 < args.length) {
+            } else if ("--dbfilename".equals(args[i])) {
                 config.setConfig("dbfilename", args[i + 1]);
             }
         }
