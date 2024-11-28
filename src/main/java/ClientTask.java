@@ -1,3 +1,4 @@
+// src/main/java/ClientTask.java
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,9 +11,9 @@ public class ClientTask implements Runnable {
     private final ProtocolParser protocolParser;
     private static final Logger logger = Logger.getLogger(ClientTask.class.getName());
 
-    public ClientTask(Socket clientSocket, Cache cache) {
+    public ClientTask(Socket clientSocket, ProtocolParser protocolParser) {
         this.clientSocket = clientSocket;
-        this.protocolParser = new ProtocolParser(cache);
+        this.protocolParser = protocolParser;
     }
 
     @Override

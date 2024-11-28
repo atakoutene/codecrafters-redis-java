@@ -1,3 +1,4 @@
+// src/main/java/ProtocolParser.java
 import java.util.logging.Logger;
 
 public class ProtocolParser {
@@ -5,13 +6,16 @@ public class ProtocolParser {
     private static final String ECHO = "ECHO";
     private static final String PING = "PING";
     private static final String GET = "GET";
+    private static final String CONFIG_GET = "CONFIG";
     private static final String SET = "SET";
     private static final Logger logger = Logger.getLogger(ProtocolParser.class.getName());
 
     private final Cache cache;
+    private final Config config;
 
-    public ProtocolParser(Cache cache) {
+    public ProtocolParser(Cache cache, Config config) {
         this.cache = cache;
+        this.config = config;
     }
 
     /**
@@ -31,12 +35,32 @@ public class ProtocolParser {
             return handleEcho(subCommands);
         } else if (upperCommand.contains(PING)) {
             return handlePing();
+        } else if (upperCommand.contains(CONFIG_GET)) {
+            return handleConfigGet(subCommands);
         } else if (upperCommand.contains(GET)) {
             return handleGet(subCommands);
         } else if (upperCommand.contains(SET)) {
             return handleSet(subCommands);
         } else {
             return handleUnknownCommand(command);
+        }
+    }
+
+    /**
+     * Handles the CONFIG GET command.
+     *
+     * @param subCommands the sub-commands of the CONFIG GET command
+     * @return the response from the CONFIG GET command
+     */
+    private String handleConfigGet(String[] subCommands) {
+        logger.info("Handling CONFIG GET command");
+        String parameter = subCommands[4];
+        String value = config.getConfig(parameter);
+
+        if (value != null) {
+            return String.format("*2\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n", parameter.length(), parameter, value.length(), value);
+        } else {
+            return "-ERR unknown parameter\r\n";
         }
     }
 
