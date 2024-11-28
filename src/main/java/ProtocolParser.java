@@ -43,7 +43,6 @@ public class ProtocolParser {
 
     private String handleKeys(String[] subCommands) {
         logger.info("Handling KEYS command");
-//        String pattern = subCommands[4];
         String pattern = "*";
         String[] keys = cache.getKeys(pattern);
         StringBuilder result = new StringBuilder();

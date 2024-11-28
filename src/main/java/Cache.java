@@ -3,6 +3,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.Map;
 
 public class Cache {
     private static final Cache instance = new Cache();
@@ -40,6 +41,4 @@ public class Cache {
                 .filter(key -> key.matches(pattern))
                 .toArray(String[]::new);
     }
-
-
 }
