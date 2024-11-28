@@ -53,7 +53,8 @@ public class ProtocolParser {
 
     private String handleKey(String[] subCommands) {
         logger.info("Handling KEY command");
-        String pattern = subCommands[3];
+        //get the pattern from the command at index 4
+        String pattern = subCommands[4];
         //get all keys that match the pattern
         String[] keys = cache.getKeys(pattern);
         //build the result string following the RESP protocol
