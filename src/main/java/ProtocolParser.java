@@ -53,7 +53,7 @@ public class ProtocolParser {
 
     private String handleKey(String[] subCommands) {
         logger.info("Handling KEY command");
-        //get the pattern from the command at index 4
+        //get the pattern from the command at index
         String pattern = subCommands[4];
         //get all keys that match the pattern
         String[] keys = cache.getKeys(pattern);
