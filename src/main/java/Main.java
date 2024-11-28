@@ -1,4 +1,3 @@
-// src/main/java/Main.java
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -24,6 +23,16 @@ public class Main {
         Cache cache = new Cache();
         ProtocolParser parser = new ProtocolParser(cache, config);
         logger.info("Server is starting...");
+
+        // Load the RDB file
+        String directory = config.getConfig("dir");
+        String dbFilename = config.getConfig("dbfilename");
+        RDBFileReader rdbFileReader = new RDBFileReader(cache);
+        try {
+            rdbFileReader.readRDBFile(directory, dbFilename);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "Failed to read RDB file", e);
+        }
 
         ServerSocket serverSocket = null;
         Socket clientSocket = null;

@@ -11,6 +11,59 @@ public class RDBFileReader {
         this.cache = cache;
     }
 
+    public void readRDBFile(String directory, String dbFilename) throws IOException {
+        File rdbFile = new File(directory, dbFilename);
+        if (!rdbFile.exists()) {
+            logger.warning("RDB file not found: Treating database as empty.");
+            return; // If file doesn't exist, exit early.
+        }
+
+        try (InputStream inputStream = new FileInputStream(rdbFile)) {
+            // Read the header section
+            readHeader(inputStream);
+
+            // Read metadata section
+            readMetadata(inputStream);
+
+            // Read database section
+            readDatabaseSection(inputStream);
+
+            // Read end of file section
+            readEndOfFile(inputStream);
+        }
+    }
+
+    private void readHeader(InputStream inputStream) throws IOException {
+        byte[] header = new byte[9];
+        if (inputStream.read(header) != 9) {
+            throw new IOException("Invalid RDB file header");
+        }
+
+        String headerStr = new String(header);
+        if (!headerStr.equals("REDIS0011")) {
+            throw new IOException("Unsupported RDB version: " + headerStr);
+        }
+        logger.info("Read header: " + headerStr);
+    }
+
+    private void readMetadata(InputStream inputStream) throws IOException {
+        int b;
+        while ((b = inputStream.read()) != -1) {
+            if (b == 0xFA) {
+                // Metadata attribute
+                String attributeName = readString(inputStream);
+                String attributeValue = readString(inputStream);
+                logger.info("Read metadata attribute: " + attributeName + " = " + attributeValue);
+            } else if (b == 0xFB) {
+                // End of metadata section
+                break;
+            } else {
+                throw new IOException("Unexpected byte in metadata section: " + b);
+            }
+        }
+        logger.info("Read metadata section");
+    }
+
     private void readDatabaseSection(InputStream inputStream) throws IOException {
         int b;
         while ((b = inputStream.read()) != -1) {
