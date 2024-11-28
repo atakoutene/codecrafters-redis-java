@@ -47,4 +47,11 @@ public class Cache {
         };
         scheduler.schedule(task, ttl, TimeUnit.MILLISECONDS);
     }
+
+    public String[] getKeys(String pattern) {
+        logger.info("Getting keys for pattern: " + pattern);
+        return dataStore.keySet().stream()
+                .filter(key -> key.matches(pattern))
+                .toArray(String[]::new);
+    }
 }

@@ -8,6 +8,7 @@ public class ProtocolParser {
     private static final String GET = "GET";
     private static final String CONFIG_GET = "CONFIG";
     private static final String SET = "SET";
+    private static final String KEY = "KEY";
     private static final Logger logger = Logger.getLogger(ProtocolParser.class.getName());
 
     private final Cache cache;
@@ -41,9 +42,32 @@ public class ProtocolParser {
             return handleGet(subCommands);
         } else if (upperCommand.contains(SET)) {
             return handleSet(subCommands);
-        } else {
+        } else if (upperCommand.contains(KEY)) {
+            return handleKey(subCommands);
+        }
+        else {
             return handleUnknownCommand(command);
         }
+    }
+
+
+    private String handleKey(String[] subCommands) {
+        logger.info("Handling KEY command");
+        String pattern = subCommands[3];
+        //get all keys that match the pattern
+        String[] keys = cache.getKeys(pattern);
+        //build the result string following the RESP protocol
+        StringBuilder result = new StringBuilder();
+        result.append("*").append(keys.length).append("\r\n");
+        for(String key : keys){
+            result.append("$");
+            result.append(key.length());
+            result.append("\r\n");
+            result.append(key);
+            result.append("\r\n");
+        }
+
+        return result.toString();
     }
 
     /**
