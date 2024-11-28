@@ -1,4 +1,4 @@
-// src/main/java/ProtocolParser.java
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class ProtocolParser {
@@ -8,7 +8,7 @@ public class ProtocolParser {
     private static final String GET = "GET";
     private static final String CONFIG_GET = "CONFIG";
     private static final String SET = "SET";
-    private static final String KEY = "KEY";
+    private static final String KEYS = "KEYS";
     private static final Logger logger = Logger.getLogger(ProtocolParser.class.getName());
 
     private final Cache cache;
@@ -19,17 +19,9 @@ public class ProtocolParser {
         this.config = config;
     }
 
-    /**
-     * Parses the given command and delegates to the appropriate handler method.
-     *
-     * @param command the command to parse
-     * @return the response from the command execution
-     */
     public String parse(String command) {
         logger.info("Parsing command: " + command);
-        // Split the command into subcommands according to the end of line characters
         String[] subCommands = command.split("\r\n");
-        // Transform the command to uppercase
         String upperCommand = command.toUpperCase();
 
         if (upperCommand.contains(ECHO)) {
@@ -42,41 +34,26 @@ public class ProtocolParser {
             return handleGet(subCommands);
         } else if (upperCommand.contains(SET)) {
             return handleSet(subCommands);
-        } else if (upperCommand.contains(KEY)) {
-            return handleKey(subCommands);
-        }
-        else {
+        } else if (upperCommand.contains(KEYS)) {
+            return handleKeys(subCommands);
+        } else {
             return handleUnknownCommand(command);
         }
     }
 
-
-    private String handleKey(String[] subCommands) {
-        logger.info("Handling KEY command");
-        //get the pattern from the command at index
+    private String handleKeys(String[] subCommands) {
+        logger.info("Handling KEYS command");
         String pattern = subCommands[4];
-        //get all keys that match the pattern
         String[] keys = cache.getKeys(pattern);
-        //build the result string following the RESP protocol
         StringBuilder result = new StringBuilder();
         result.append("*").append(keys.length).append("\r\n");
-        for(String key : keys){
-            result.append("$");
-            result.append(key.length());
-            result.append("\r\n");
-            result.append(key);
-            result.append("\r\n");
+        for (String key : keys) {
+            result.append("$").append(key.length()).append("\r\n");
+            result.append(key).append("\r\n");
         }
-
         return result.toString();
     }
 
-    /**
-     * Handles the CONFIG GET command.
-     *
-     * @param subCommands the sub-commands of the CONFIG GET command
-     * @return the response from the CONFIG GET command
-     */
     private String handleConfigGet(String[] subCommands) {
         logger.info("Handling CONFIG GET command");
         String parameter = subCommands[6];
@@ -89,79 +66,39 @@ public class ProtocolParser {
         }
     }
 
-    /**
-     * Handles the ECHO command.
-     *
-     * @param subCommands the sub-commands of the ECHO command
-     * @return the response from the ECHO command
-     */
     private String handleEcho(String[] subCommands) {
         logger.info("Handling ECHO command");
         int n = subCommands.length;
-        // Get the length of the string to be echoed, it's the second last element
         int length = Integer.parseInt(subCommands[n - 2].substring(1));
-        // Get the string to be echoed, it's the last element
         String result = subCommands[n - 1];
         return "$" + length + "\r\n" + result + "\r\n";
     }
 
-    /**
-     * Handles the PING command.
-     *
-     * @return the response from the PING command
-     */
     private String handlePing() {
         logger.info("Handling PING command");
         return "+PONG\r\n";
     }
 
-    /**
-     * Handles the GET command.
-     *
-     * @param subCommands the sub-commands of the GET command
-     * @return the response from the GET command
-     */
     private String handleGet(String[] subCommands) {
         logger.info("Handling GET command");
-        // Get the key from the command, it's the 4th index
         String key = subCommands[4];
-        // Get the value from the Redis server
         String value = cache.get(key);
         return value == null ? "$-1\r\n" : String.format("$%d\r\n%s\r\n", value.length(), value);
     }
 
-    /**
-     * Handles the SET command.
-     *
-     * @param subCommands the sub-commands of the SET command
-     * @return the response from the SET command
-     */
     private String handleSet(String[] subCommands) {
         logger.info("Handling SET command");
-        // Get the key and value from the command, they are the 4th and 6th index
         String key = subCommands[4];
         String value = subCommands[6];
-        // Check if the command has an expiry time based on the length of the subCommands array
-        // PX is the 8th index
         if (subCommands.length > 7 && subCommands[8].equalsIgnoreCase("PX")) {
-            logger.info("Setting with expiry");
-            logger.info("Setting with expiry " + subCommands[10]);
-            // Get the time-to-live (TTL) from the command, it's the 10th index
             long ttl = Long.parseLong(subCommands[10]);
-            // Set the value with the expiry time
-            cache.setWithExpiry(key, value, ttl);
+            cache.setWithExpiry(key, value, ttl, TimeUnit.MILLISECONDS);
         } else {
             cache.set(key, value);
         }
         return "+OK\r\n";
     }
 
-    /**
-     * Handles unknown commands.
-     *
-     * @param command the unknown command
-     * @return the error response for the unknown command
-     */
     private String handleUnknownCommand(String command) {
         logger.warning("Unknown command: " + command);
         return "-ERR unknown command '" + command + "'\r\n";

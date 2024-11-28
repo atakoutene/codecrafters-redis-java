@@ -1,188 +1,195 @@
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.logging.Logger;
+import java.util.concurrent.TimeUnit;
 
 public class RDBFileReader {
-    private static final Logger logger = Logger.getLogger(RDBFileReader.class.getName());
-    private final Cache cache;
 
-    public RDBFileReader(Cache cache) {
-        this.cache = cache;
-    }
+    public static void readRDBFile(String dir, String filename) throws IOException {
+        File file = new File(dir, filename);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            int index = 0;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-    public void readRDBFile(String directory, String dbFilename) throws IOException {
-        File rdbFile = new File(directory, dbFilename);
-        if (!rdbFile.exists()) {
-            logger.warning("RDB file not found: Treating database as empty.");
-            return; // If file doesn't exist, exit early.
-        }
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
 
-        try (InputStream inputStream = new FileInputStream(rdbFile)) {
-            // Read the header section
-            readHeader(inputStream);
+            byte[] fileContent = baos.toByteArray();
+            index = 0;
+            int fileLength = fileContent.length;
 
-            // Read metadata section
-            readMetadata(inputStream);
+            System.out.println("File length: " + fileLength);
 
-            // Read database section
-            readDatabaseSection(inputStream);
+            while (index < fileLength) {
+                byte firstByte = fileContent[index];
 
-            // Read end of file section
-            readEndOfFile(inputStream);
-        }
-    }
+                if (firstByte == (byte) 0xFB) {
+                    // Skip FB
+                    index++;
 
-    private void readHeader(InputStream inputStream) throws IOException {
-        byte[] header = new byte[9];
-        if (inputStream.read(header) != 9) {
-            throw new IOException("Invalid RDB file header");
-        }
+                    if (fileContent[index] == (byte) 0xFC || fileContent[index] == (byte) 0xFD) {
+                        index = readKeyValuePairWithExpiration(fileContent, index);
+                    } else {
+                        index = readKeyValuePair(fileContent, index);
+                    }
 
-        String headerStr = new String(header);
-        if (!headerStr.equals("REDIS0011")) {
-            throw new IOException("Unsupported RDB version: " + headerStr);
-        }
-        logger.info("Read header: " + headerStr);
-    }
+                } else {
+                    index++;
+                }
 
-    private void readMetadata(InputStream inputStream) throws IOException {
-        int b;
-        while ((b = inputStream.read()) != -1) {
-            if (b == 0xFA) {
-                // Metadata attribute
-                String attributeName = readString(inputStream);
-                String attributeValue = readString(inputStream);
-                logger.info("Read metadata attribute: " + attributeName + " = " + attributeValue);
-            } else if (b == 0xFB) {
-                // End of metadata section
-                break;
-            } else {
-                throw new IOException("Unexpected byte in metadata section: " + b);
             }
         }
-        logger.info("Read metadata section");
     }
 
-    private void readDatabaseSection(InputStream inputStream) throws IOException {
-        int b;
-        while ((b = inputStream.read()) != -1) {
-            if (b == 0xFB) {
-                // Read the hash table sizes
-                int keyValueSize = readSize(inputStream);
-                int expirySize = readSize(inputStream);
+    private static int readKeyValuePairWithExpiration(byte[] buffer, int index) {
+        long expireTimestamp = -1;
+        boolean isMilliseconds = false;
 
-                // Read key-value pairs
-                for (int i = 0; i < keyValueSize + expirySize; i++) {
-                    readKeyValuePair(inputStream);
-                }
-            } else if (b == 0xFF) {
-                // End of file section
-                readEndOfFile(inputStream);
-                break;
-            } else {
-                throw new IOException("Unexpected byte in database section: " + b);
-            }
+        // If the time is expressed in seconds
+        if (buffer[index] == (byte) 0xFC) {
+            // Time is gonna be given in milliseconds
+            isMilliseconds = true;
+            // Skip FC byte
+            index++;
+            // Read the timestamp
+            expireTimestamp = readLong(buffer, index);
+            index += 8;
+        } else if (buffer[index] == (byte) 0xFD) {
+            // Skip the FD byte
+            index++;
+            // Read the timestamp
+            expireTimestamp = readInt(buffer, index);
+            index += 4;
         }
-        logger.info("Read database section");
+
+        // Skip the type of value stored
+        byte valueType = buffer[index];
+        index++;
+
+        // Read the key length
+        int keyLength = readSizeEncodedValue(buffer, index);
+        index += getSizeEncodedLength(buffer[index]);
+
+        // Read the key
+        String key = new String(buffer, index, keyLength);
+        index += keyLength;
+
+        // Read the value length
+        int valueLength = readSizeEncodedValue(buffer, index);
+        index += getSizeEncodedLength(buffer[index]);
+
+        // Read the value
+        String value = new String(buffer, index, valueLength);
+        index += valueLength;
+
+        System.out.printf("Key: %s, Value: %s%n", key, value);
+
+        // Store the key-value pair in the cache with expiry
+        if (!key.isEmpty() && !value.isEmpty()) {
+            Cache.getInstance().setWithExpiry(key, value, expireTimestamp, isMilliseconds ? TimeUnit.MILLISECONDS : TimeUnit.SECONDS);
+        }
+
+        // For simple delimiter just proceed to the next key-value pair
+        if (index < buffer.length && buffer[index] == (byte) 0x00) {
+            index++;
+        }
+
+        return index;
     }
 
-    private void readKeyValuePair(InputStream inputStream) throws IOException {
-        long expiry = 0;
-        boolean hasExpiry = false;
+    private static long readLong(byte[] buffer, int index) {
+        return ((buffer[index] & 0xFFL)) |
+                ((buffer[index + 1] & 0xFFL) << 8) |
+                ((buffer[index + 2] & 0xFFL) << 16) |
+                ((buffer[index + 3] & 0xFFL) << 24) |
+                ((buffer[index + 4] & 0xFFL) << 32) |
+                ((buffer[index + 5] & 0xFFL) << 40) |
+                ((buffer[index + 6] & 0xFFL) << 48) |
+                ((buffer[index + 7] & 0xFFL) << 56);
+    }
 
-        // Check for optional expiry information
-        inputStream.mark(1);
-        int expiryType = inputStream.read();
-        if (expiryType == 0xFC) {
-            expiry = readLong(inputStream);
-            hasExpiry = true;
-        } else if (expiryType == 0xFD) {
-            expiry = readInt(inputStream);
-            hasExpiry = true;
+    private static int readInt(byte[] buffer, int index) {
+        return ((buffer[index] & 0xFF)) |
+                ((buffer[index + 1] & 0xFF) << 8) |
+                ((buffer[index + 2] & 0xFF) << 16) |
+                ((buffer[index + 3] & 0xFF) << 24);
+    }
+
+    private static int readKeyValuePair(byte[] buffer, int index) {
+        // Read the type of value stored (1 byte)
+        byte valueType = buffer[index];
+        // Skip the associated byte
+        index += 1;
+        System.out.println("Type of value stored: " + valueType);
+
+        // Read the key length (size-encoded)
+        int keyLength = readSizeEncodedValue(buffer, index);
+        index += getSizeEncodedLength(buffer[index]);
+
+        // Read the key (keyLength bytes)
+        String key = new String(buffer, index, keyLength);
+        index += keyLength;
+
+        // Read the value length (size-encoded)
+        int valueLength = readSizeEncodedValue(buffer, index);
+        index += getSizeEncodedLength(buffer[index]);
+
+        // Read the value (valueLength bytes)
+        String value = new String(buffer, index, valueLength);
+        index += valueLength;
+
+        // Print the parsed key and value
+        System.out.printf("Key: %s, Value: %s%n", key, value);
+
+        if (!key.isEmpty() && !value.isEmpty()) {
+            // Store the key-value pair in the cache
+            Cache.getInstance().set(key, value);
+        }
+
+        return index;
+    }
+
+    private static int readSizeEncodedValue(byte[] buffer, int index) {
+        byte firstByte = buffer[index];
+        int size;
+
+        // 00C0 (1100 0000)
+        // firstByte & 0xC0 is used to consider only the first 2 bits of the byte
+        if ((firstByte & 0xC0) == 0x00) {
+            // 00xxxxxx
+            // 3F (0011 1111) is used to mask the lower 6 bits
+            size = firstByte & 0x3F;
+        } else if ((firstByte & 0xC0) == 0x40) {
+            // 01xxxxxx xxxxxxxx
+            size = ((firstByte & 0x3F) << 8) | (buffer[index + 1] & 0xFF);
+        } else if ((firstByte & 0xC0) == 0x80) {
+            // 10xxxxxx xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxxx
+            size = ((buffer[index + 1] & 0xFF) << 24) | ((buffer[index + 2] & 0xFF) << 16) |
+                    ((buffer[index + 3] & 0xFF) << 8) | (buffer[index + 4] & 0xFF);
         } else {
-            inputStream.reset();
+            // 11xxxxxx (string encoding type)
+            size = handleStringEncoding(buffer, index);
         }
 
-        int valueType = inputStream.read();
-        if (valueType != 0x00) {
-            throw new IOException("Unsupported value type: " + valueType);
-        }
+        return size;
+    }
 
-        String key = readString(inputStream);
-        String value = readString(inputStream);
+    private static int handleStringEncoding(byte[] buffer, int index) {
+        // Handle string encoding types here
+        // For this example, we'll just throw an exception
+        throw new IllegalArgumentException("String encoding type not supported in this example");
+    }
 
-        if (hasExpiry) {
-            cache.setWithExpiry(key, value, expiry);
+    private static int getSizeEncodedLength(byte firstByte) {
+        if ((firstByte & 0xC0) == 0x00) {
+            return 1;
+        } else if ((firstByte & 0xC0) == 0x40) {
+            return 2;
+        } else if ((firstByte & 0xC0) == 0x80) {
+            return 5;
         } else {
-            cache.set(key, value);
+            return 1; // For string encoding type, return 1 for now
         }
-        logger.info("Loaded key: " + key + ", Value: " + value + ", Expiry: " + (hasExpiry ? expiry : "none"));
-    }
-
-    private void readEndOfFile(InputStream inputStream) throws IOException {
-        int b = inputStream.read();
-        if (b != 0xFF) {
-            throw new IOException("Expected end of file marker, but found: " + b);
-        }
-
-        byte[] checksum = new byte[8];
-        if (inputStream.read(checksum) != 8) {
-            throw new IOException("Invalid RDB checksum");
-        }
-        logger.info("Checksum validated");
-    }
-
-    private String readString(InputStream inputStream) throws IOException {
-        int length = readSize(inputStream);
-        byte[] data = new byte[length];
-        if (inputStream.read(data) != length) {
-            throw new IOException("Failed to read string");
-        }
-        return new String(data);
-    }
-
-    private int readSize(InputStream inputStream) throws IOException {
-        int firstByte = inputStream.read();
-        if (firstByte == -1) throw new EOFException();
-
-        int type = (firstByte & 0xC0) >> 6;
-        int value = firstByte & 0x3F;
-
-        switch (type) {
-            case 0x00:
-                return value;
-            case 0x01:
-                int secondByte = inputStream.read();
-                if (secondByte == -1) throw new EOFException();
-                return (value << 8) | secondByte;
-            case 0x02:
-                byte[] longBytes = new byte[4];
-                longBytes[3] = (byte) value; // Remaining bits from the first byte
-                if (inputStream.read(longBytes, 0, 3) != 3) {
-                    throw new IOException("Failed to read size-encoded value");
-                }
-                return ByteBuffer.wrap(longBytes).order(ByteOrder.BIG_ENDIAN).getInt();
-            case 0x03:
-                throw new UnsupportedEncodingException("String encoding not supported in size");
-            default:
-                throw new IOException("Invalid size encoding type");
-        }
-    }
-
-    private int readInt(InputStream inputStream) throws IOException {
-        byte[] intBytes = new byte[4];
-        if (inputStream.read(intBytes) != 4) {
-            throw new IOException("Failed to read int");
-        }
-        return ByteBuffer.wrap(intBytes).order(ByteOrder.LITTLE_ENDIAN).getInt();
-    }
-
-    private long readLong(InputStream inputStream) throws IOException {
-        byte[] longBytes = new byte[8];
-        if (inputStream.read(longBytes) != 8) {
-            throw new IOException("Failed to read long");
-        }
-        return ByteBuffer.wrap(longBytes).order(ByteOrder.LITTLE_ENDIAN).getLong();
     }
 }
