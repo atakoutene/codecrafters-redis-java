@@ -8,12 +8,12 @@ import java.util.logging.Logger;
 
 public class RDBReader {
     public static Map<String, String> metadata = new HashMap<>();
-    public static Database database = Database.getInstance();
+    public static Cache cache = Cache.getInstance();
     public static Logger logger = Logger.getLogger(RDBReader.class.getName());
 
 
     public static void readRDBFile(String dir, String dbfilename) throws IOException {
-        // Create the database
+        // Create the cache
         // createFile(testData);
 
         File file = new File(dir + "/" + dbfilename);
@@ -70,9 +70,9 @@ public class RDBReader {
     private static void readIndex(FileInputStream fis) throws IOException {
         // Read the index
         int dbIndex = fis.read();
-        logger.info("Database index: " + dbIndex);
+        logger.info("Cache index: " + dbIndex);
 
-        database.setId(dbIndex);
+        cache.setId(dbIndex);
     }
 
     private static void readData(FileInputStream fis) throws IOException {
@@ -132,7 +132,7 @@ public class RDBReader {
         logger.info("Value: " + value);
 
         // Store the key-value pair
-        database.set(key, value);
+        cache.set(key, value);
         logger.info("Key-value pair: stored");
     }
 
@@ -151,7 +151,7 @@ public class RDBReader {
         TimeUnit unit = isMillisecond ? TimeUnit.MILLISECONDS : TimeUnit.SECONDS;
 
         // Store the key-value pair
-        database.setWithExpiry(key, value, timestamp, unit);
+        cache.setWithExpiry(key, value, timestamp, unit);
         logger.info("Key-value pair with expiry: stored");
     }
 

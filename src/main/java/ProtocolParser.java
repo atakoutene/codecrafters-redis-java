@@ -1,6 +1,5 @@
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 // This is the protocol parser used to parse the commands
@@ -16,7 +15,7 @@ public class ProtocolParser {
     private static final String KEY_COMMAND = "KEYS";
 
     // Get the singleton instance of the RedisServer
-    private static final Database redisServer = Database.getInstance();
+    private static final Cache redisServer = Cache.getInstance();
 
     // Get the persistent storage instance
     private static final Config CONFIG = Config.getInstance();

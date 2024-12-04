@@ -1,61 +1,101 @@
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 public class Cache {
-    // Singleton instance
-    private static final Cache instance = new Cache();
+    private int id;
+    private final Map<String, String> keyToValue = new ConcurrentHashMap<>();
+    private final Map<String, List<Object>> keyToValueWithExpiry = new ConcurrentHashMap<>();
 
-    // Store to hold the key-value pairs
-    private final Map<String, String> store = new ConcurrentHashMap<>();
+    private static Cache instance;
 
-    // Scheduler to handle TTL
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private static final Logger logger = Logger.getLogger(Cache.class.getName());
-
-    private Cache() {
-    }
+    // Private constructor to enforce Singleton pattern
+    private Cache() {}
 
     public static Cache getInstance() {
+        if (instance == null) {
+            synchronized (Cache.class) {
+                if (instance == null) {
+                    instance = new Cache();
+                }
+            }
+        }
         return instance;
     }
 
-    public void set(String key, String value) {
-//        logger.info("Setting key: " + key + " to value: " + value);
-
-        // Store the key-value pair
-        this.store.put(key, value);
-
-//        logger.info("Store after setting key: " + key + " to value: " + value);
-//        this.printStore();
-    }
-
-    public void setWithTTL(String key, String value, long ttl, TimeUnit unit) {
-        // Set first
-        set(key, value);
-
-        // Schedule the removal of the key after TTL
-        scheduler.schedule(() -> {
-//            logger.info("Removing key: " + key + " after TTL");
-            store.remove(key);
-        }, ttl, unit);
-    }
-
-    public String get(String key) {
-        return this.store.get(key);
-    }
-
-    public String[] keys() {
-//        logger.info("Getting all keys");
-        return store.keySet().toArray(new String[0]);
-    }
-
-    private void printStore() {
-        for (Map.Entry<String, String> entry : store.entrySet()) {
-            logger.info("Key: " + entry.getKey() + " Value: " + entry.getValue());
+    public synchronized void set(String key, String value) {
+        if (key == null || value == null) {
+            throw new IllegalArgumentException("Key and value must not be null");
         }
+        this.keyToValue.put(key, value);
     }
+
+    public synchronized String get(String key) {
+        if (keyToValue.containsKey(key)) {
+            return keyToValue.get(key);
+        } else if (keyToValueWithExpiry.containsKey(key)) {
+            // Get the current time in milliseconds
+            long currentTime = System.currentTimeMillis();
+            List<Object> valueWithExpiry = keyToValueWithExpiry.get(key);
+
+            // Check if the current time is less than the expiry time
+            if (currentTime < (long) valueWithExpiry.get(1)) {
+                return (String) valueWithExpiry.get(0);
+            } else {
+                keyToValueWithExpiry.remove(key);
+                return null;
+            }
+
+        }
+        return null;
+    }
+
+    public synchronized void setWithExpiry(String key, String value, long delay) {
+        if (key == null || value == null) {
+            throw new IllegalArgumentException("Key and value must not be null");
+        }
+
+        List<Object> valueWithExpiry = List.of(value, delay);
+
+        this.keyToValueWithExpiry.put(key, valueWithExpiry);
+//        scheduler.schedule(() -> {
+//            this.keyToValue.remove(key);
+//            Logger logger = Logger.getLogger(Cache.class.getName());
+//            logger.info("Removing key: " + key + " after " + delay + " " + TimeUnit.MILLISECONDS);
+//        }, delay, TimeUnit.MILLISECONDS);
+    }
+
+    public synchronized void setWithExpiry(String key, String value, long delay, TimeUnit unit) {
+        if (key == null || value == null) {
+            throw new IllegalArgumentException("Key and value must not be null");
+        }
+
+        List<Object> valueWithExpiry = unit == TimeUnit.SECONDS  ? List.of(value, delay * 1000) : List.of(value, delay);
+
+        this.keyToValueWithExpiry.put(key, valueWithExpiry);
+//        scheduler.schedule(() -> {
+//            this.keyToValue.remove(key);
+//            Logger logger = Logger.getLogger(Cache.class.getName());
+//            logger.info("Removing key: " + key + " after " + delay + " " + unit);
+//        }, delay, unit);
+    }
+
+    public synchronized String[] keys() {
+        Set<String> allKeys = new HashSet<>(this.keyToValue.keySet());
+        allKeys.addAll(this.keyToValueWithExpiry.keySet());
+        return allKeys.toArray(new String[0]);
+    }
+
+    public synchronized void setId(int id) {
+        this.id = id;
+    }
+
+    public synchronized int getId() {
+        return this.id;
+    }
+
+
 }
