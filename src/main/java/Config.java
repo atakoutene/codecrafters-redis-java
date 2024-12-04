@@ -1,27 +1,42 @@
-// src/main/java/Config.java
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 public class Config {
-    private final Map<String, String> configMap = new HashMap<>();
+    // Singleton instance
+    private static final Config instance = new Config();
 
-    /**
-     * Sets a configuration parameter.
-     *
-     * @param key the configuration parameter name
-     * @param value the configuration parameter value
-     */
-    public void setConfig(String key, String value) {
-        configMap.put(key, value);
+    // Store to hold the key-value pairs
+    private final Map<String, String> config = new ConcurrentHashMap<>();
+
+    private Logger logger = Logger.getLogger(Config.class.getName());
+
+    private Config() {
     }
 
-    /**
-     * Retrieves the value of a configuration parameter.
-     *
-     * @param key the configuration parameter name
-     * @return the configuration parameter value, or null if not found
-     */
+    public static Config getInstance() {
+        return instance;
+    }
+
+    public void setConfig(String key, String value) {
+//        logger.info("Setting key: " + key + " to value: " + value);
+
+        // Store the key-value pair
+        this.config.put(key, value);
+
+//        logger.info("Store after setting key: " + key + " to value: " + value);
+//        this.printConfig();
+    }
+
+
     public String getConfig(String key) {
-        return configMap.get(key);
+//        logger.info("Getting key: " + key);
+        return this.config.get(key);
+    }
+
+    private void printConfig() {
+        for (Map.Entry<String, String> entry : config.entrySet()) {
+            logger.info("Key: " + entry.getKey() + " Value: " + entry.getValue());
+        }
     }
 }
