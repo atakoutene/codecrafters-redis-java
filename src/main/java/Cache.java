@@ -76,11 +76,6 @@ public class Cache {
         List<Object> valueWithExpiry = unit == TimeUnit.SECONDS  ? List.of(value, delay * 1000) : List.of(value, delay);
 
         this.keyToValueWithExpiry.put(key, valueWithExpiry);
-//        scheduler.schedule(() -> {
-//            this.keyToValue.remove(key);
-//            Logger logger = Logger.getLogger(Cache.class.getName());
-//            logger.info("Removing key: " + key + " after " + delay + " " + unit);
-//        }, delay, unit);
     }
 
     public synchronized String[] keys() {

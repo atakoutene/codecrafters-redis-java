@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+//service use to handle size, string decoding
 public class Decoder {
 
     public static String getData(FileInputStream fis) throws IOException {
@@ -60,8 +61,9 @@ public class Decoder {
         int numBytesToRead = -1;
 
         if (firstByte == (byte) 0xC0) {
-            int nextByte = fis.read();
-            return Integer.toString(nextByte);
+            numBytesToRead = 1;
+//            int nextByte = fis.read();
+//            return Integer.toString(nextByte);
         }
         else if(firstByte == (byte) 0xC1) {
             numBytesToRead = 2;

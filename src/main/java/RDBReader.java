@@ -13,9 +13,6 @@ public class RDBReader {
 
 
     public static void readRDBFile(String dir, String dbfilename) throws IOException {
-        // Create the cache
-        // createFile(testData);
-
         File file = new File(dir + "/" + dbfilename);
 
         try(FileInputStream fis = new FileInputStream(file)) {
@@ -35,10 +32,10 @@ public class RDBReader {
                 logger.info("Key: " + key + ", Value: " + value);
             });
 
-            // Read the index
+            // Read the index, because we are right after the 0xFE byte
             readIndex(fis);
 
-            // Read the data
+            // Read the data, because we are right after the db index. Just pointing on the 0xFB byte
             getData(fis);
 
         } catch(IOException e) {
@@ -173,19 +170,6 @@ public class RDBReader {
         return buffer.getLong();
     }
 
-//    public static void createFile(byte[] data) {
-//        // Create a file with the given data
-//        File file = new File("data.dat");
-//
-//        try(FileOutputStream fos = new FileOutputStream(file)) {
-//            for (byte b : data) {
-//                fos.write(b);
-//            }
-//        } catch(IOException e) {
-//            throw new RuntimeException();
-//        }
-//
-//    }
 
     public static String readHeader(FileInputStream fis) throws IOException {
         // The header is composed of: Magic String + Version

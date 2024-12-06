@@ -32,9 +32,9 @@ public class ProtocolParser {
         String uppercasedCommand = command.toUpperCase(Locale.ROOT);
         logger.info("Uppercased command: " + uppercasedCommand);
 
-        // Split the string according to the delimiter
+        // Split the string according to the new line character
         String[] parts = command.split("\r\n");
-        // Remove the first three parts of the array as they are: *3, $3, GET
+        // Remove the first three parts of the array as they are: number of arguments in given RESP array, command length and command
         parts = Arrays.copyOfRange(parts, 3, parts.length);
         logger.info("Command parts: " + Arrays.toString(parts));
 
@@ -178,17 +178,11 @@ public class ProtocolParser {
         String pattern = parts[1];
 
         logger.info("Getting keys");
-        // Get all the keys that match the pattern
+        // Get all the keys that match the pattern, in this case we get all keys since the pattern is "*"
         String[] keys = redisServer.keys();
 
         logger.info("Got keys");
         logger.info("Keys: " + Arrays.toString(keys));
-
-        System.out.println("Showing all keys: ");
-        // Testing all the keys
-        for (String key : keys) {
-            logger.info("Key: " + key);
-        }
 
         // Filter the keys that match the pattern
         String filteredKeys = Arrays.stream(keys)

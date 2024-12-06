@@ -7,17 +7,18 @@ import java.util.logging.Logger;
 
 public class Main {
 
-    private static final int PORT = 6379;
+    private static int port = 6379;
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
-        System.out.println("Server started on port: " + PORT);
+        System.out.println("Server started on port: " + port);
 
         // Check if the number of arguments is correct
         if (args.length > 3) {
             // Get the dir and dbfilename parameters
             String dir = args[1];
             String dbfilename = args[3];
+            port = Integer.parseInt(args[4]);
 
             // Log the two parameters
             logger.config("dir: " + dir);
@@ -40,12 +41,12 @@ public class Main {
 
         ServerSocket serverSocket = null;
 
-        // Threadpool to handle multiple clients
+        // Threadpool to handle threads concurrently efficiently
         ExecutorService threadPool = Executors.newFixedThreadPool(10);
 
         try {
-            // Create a new server socket
-            serverSocket = new ServerSocket(PORT);
+            // Create a server socket
+            serverSocket = new ServerSocket(port);
             serverSocket.setReuseAddress(true);
 
             // keep server running
