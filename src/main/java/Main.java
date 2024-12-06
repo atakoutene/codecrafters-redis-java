@@ -17,8 +17,8 @@ public class Main {
         // Check if the number of arguments is correct
         if (args.length > 3) {
             // Get the dir and dbfilename parameters
-            String dir = args[1];
-            String dbfilename = args[3];
+            String dir = args[2];
+            String dbfilename = args[4];
 
             // Log the two parameters
             logger.config("dir: " + dir);
