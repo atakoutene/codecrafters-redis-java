@@ -7,10 +7,11 @@ import java.util.logging.Logger;
 
 public class Main {
 
-    private static int port = 6379;
+    private static int port;
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
+        port = args.length > 1 ? Integer.parseInt(args[1]) : 6379;
         System.out.println("Server started on port: " + port);
 
         // Check if the number of arguments is correct
@@ -18,7 +19,6 @@ public class Main {
             // Get the dir and dbfilename parameters
             String dir = args[1];
             String dbfilename = args[3];
-            port = Integer.parseInt(args[4]);
 
             // Log the two parameters
             logger.config("dir: " + dir);
