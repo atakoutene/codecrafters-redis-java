@@ -11,14 +11,14 @@ public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
-        port = args.length > 1 ? Integer.parseInt(args[1]) : 6379;
+        port = (args.length > 1 & args.length < 3) ? Integer.parseInt(args[1]) : 6379;
         System.out.println("Server started on port: " + port);
 
         // Check if the number of arguments is correct
         if (args.length > 3) {
             // Get the dir and dbfilename parameters
-            String dir = args[2];
-            String dbfilename = args[4];
+            String dir = args[1];
+            String dbfilename = args[3];
 
             // Log the two parameters
             logger.config("dir: " + dir);
