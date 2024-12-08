@@ -10,9 +10,6 @@ public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
-        int port = 6379;
-        boolean isReplica = false;
-
         for (int i = 0; i < args.length; i++) {
             logger.config("args[" + i + "]: " + args[i]);
             // Process all the arguments
@@ -22,6 +19,8 @@ public class Main {
                 processArgument(arg, value);
             }
         }
+
+        int port = Integer.parseInt(Config.getInstance().getConfig("port"));
 
         System.out.println("Server started on port: " + port);
 
