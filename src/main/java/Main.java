@@ -14,18 +14,14 @@ public class Main {
         boolean isReplica = false;
 
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("--port") && i + 1 < args.length) {
-                port = Integer.parseInt(args[i + 1]);
-            } else if (args[i].equals("--replicaof") && i + 2 < args.length) {
-                isReplica = true;
-                // You can store the master host and port if needed
-                String masterHost = args[i + 1];
-                int masterPort = Integer.parseInt(args[i + 2]);
-                logger.config("Replica of: " + masterHost + ":" + masterPort);
+            logger.config("args[" + i + "]: " + args[i]);
+            // Process all the arguments
+            if (args[i].startsWith("--")) {
+                String arg = args[i].split("--")[1];
+                String value = args[i + 1];
+                processArgument(arg, value);
             }
         }
-
-        Config.getInstance().setReplica(isReplica);
 
         System.out.println("Server started on port: " + port);
 
@@ -45,6 +41,31 @@ public class Main {
             System.err.println("IOException: " + e.getMessage());
         } finally {
             threadPool.shutdown();
+        }
+    }
+
+    private static void processArgument(String arg, String value) {
+        switch (arg) {
+            case "--port":
+                int port = Integer.parseInt(value);
+                logger.config("PORT: " + port);
+                Config.getInstance().setConfig("port", Integer.toString(port));
+                break;
+            case "--dir":
+                logger.config("dir: " + value);
+                Config.getInstance().setConfig("dir", value);
+                break;
+            case "--dbfilename":
+                logger.config("dbfilename: " + value);
+                Config.getInstance().setConfig("dbfilename", value);
+                break;
+            case "--replicaof":
+                logger.config("replicaof: " + value);
+                Config.getInstance().setConfig("replicaof", value);
+                break;
+            default:
+                logger.warning("Unknown argument: " + arg);
+                break;
         }
     }
 }
