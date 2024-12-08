@@ -84,10 +84,11 @@ public class ProtocolParser {
         logger.info("Handling INFO REPLICATION command");
 
         // Create the response for the replication section
-        String response = "role:master\r\n";
+        //$11\r\nrole:master\r\n
+        String response = "role:master";
 
         // Return the response as a Bulk string
-        return "$" + response.length() + "\r\n" + response;
+        return "$" + response.length() + "\r\n" + response + "\r\n";
     }
     private static String handlePingCommand() {
         logger.info("Handling PING command");
