@@ -21,7 +21,19 @@ public class Main {
         }
         //port is 6379 by default
         String portLiteral = Config.getInstance().getConfig("port");
-        int port = Integer.parseInt(portLiteral != null ? portLiteral : "6379"); ;
+        int port = Integer.parseInt(portLiteral != null ? portLiteral : "6379");
+        
+        //handle RDB File
+        String dir = Config.getInstance().getConfig("dir");
+        String dbFileName = Config.getInstance().getConfig("dbfilename");
+        if (dir != null && dbFileName != null) {
+            try {
+                RDBReader.readRDBFile(dir, dbFileName);
+            } catch (IOException e) {
+                logger.severe("Error reading RDB file: " + e.getMessage());
+            }
+        }
+        
 
         System.out.println("Server started on port: " + port);
 
