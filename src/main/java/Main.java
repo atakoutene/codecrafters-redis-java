@@ -19,8 +19,9 @@ public class Main {
                 processArgument(arg, value);
             }
         }
-
-        int port = Integer.parseInt(Config.getInstance().getConfig("port"));
+        //port is 6379 by default
+        String portLiteral = Config.getInstance().getConfig("port");
+        int port = Integer.parseInt(portLiteral != null ? portLiteral : "6379"); ;
 
         System.out.println("Server started on port: " + port);
 
