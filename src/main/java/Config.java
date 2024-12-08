@@ -9,6 +9,8 @@ public class Config {
     private final Map<String, String> config = new ConcurrentHashMap<>();
     private Logger logger = Logger.getLogger(Config.class.getName());
 
+    static Map<Integer, Object> table = new ConcurrentHashMap<>();
+
     private Config() {
     }
 
@@ -25,9 +27,5 @@ public class Config {
         return this.config.get(key);
     }
 
-//    private void printConfig() {
-//        for (Map.Entry<String, String> entry : config.entrySet()) {
-//            logger.info("Key: " + entry.getKey() + " Value: " + entry.getValue());
-//        }
-//    }
+
 }

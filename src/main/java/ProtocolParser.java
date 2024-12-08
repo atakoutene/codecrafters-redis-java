@@ -13,6 +13,7 @@ public class ProtocolParser {
     private static final String SET_COMMAND = "SET";
     private static final String CONFIG_COMMAND = "CONFIG";
     private static final String KEY_COMMAND = "KEYS";
+    private static final String INFO_COMMAND = "INFO";
 
     // Get the singleton instance of the RedisServer
     private static final Cache redisServer = Cache.getInstance();
@@ -38,8 +39,12 @@ public class ProtocolParser {
         parts = Arrays.copyOfRange(parts, 3, parts.length);
         logger.info("Command parts: " + Arrays.toString(parts));
 
+        // Check if the command contains the INFO command
+        if (uppercasedCommand.contains(INFO_COMMAND)) {
+            return handleInfoCommand(parts);
+        }
         // Check if the command contains the PING command
-        if (uppercasedCommand.contains(PING_COMMAND)) {
+        else if (uppercasedCommand.contains(PING_COMMAND)) {
             return handlePingCommand();
         }
         // Check if the command contains the ECHO command
@@ -49,15 +54,12 @@ public class ProtocolParser {
         else if (uppercasedCommand.contains(CONFIG_COMMAND)) {
             return handleConfigCommand(parts);
         }
-
         else if (uppercasedCommand.contains(GET_COMMAND)) {
             return handleGetCommand(parts);
         }
-
         else if (uppercasedCommand.contains(SET_COMMAND)) {
             return handleSetCommand(parts);
         }
-
         else if (uppercasedCommand.contains(KEY_COMMAND)) {
             return handleKeyCommand(parts);
         }
@@ -67,6 +69,26 @@ public class ProtocolParser {
         }
     }
 
+    private static String handleInfoCommand(String[] parts) {
+        logger.info("Handling INFO command with parts: " + Arrays.toString(parts));
+
+        // Check if the command is for the replication section
+        if (parts.length > 1 && parts[1].equalsIgnoreCase("REPLICATION")) {
+            return handleInfoReplicationCommand();
+        }
+
+        return "-ERR unknown section\r\n";
+    }
+
+    private static String handleInfoReplicationCommand() {
+        logger.info("Handling INFO REPLICATION command");
+
+        // Create the response for the replication section
+        String response = "role:master\r\n";
+
+        // Return the response as a Bulk string
+        return "$" + response.length() + "\r\n" + response;
+    }
     private static String handlePingCommand() {
         logger.info("Handling PING command");
         return "+PONG\r\n";

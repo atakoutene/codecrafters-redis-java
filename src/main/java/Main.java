@@ -7,32 +7,31 @@ import java.util.logging.Logger;
 
 public class Main {
 
-    private static int port;
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
-        port = (args.length > 1 & args.length < 3) ? Integer.parseInt(args[1]) : 6379;
+        int port = (args.length > 1 & args.length < 3) ? Integer.parseInt(args[1]) : 6379;
         System.out.println("Server started on port: " + port);
 
         // Check if the number of arguments is correct
         if (args.length > 3) {
-            // Get the dir and dbfilename parameters
+            // Get the dir and dbFileName parameters
             String dir = args[1];
-            String dbfilename = args[3];
+            String dbFileName = args[3];
 
             // Log the two parameters
             logger.config("dir: " + dir);
-            logger.config("dbfilename: " + dbfilename);
+            logger.config("dbFileName: " + dbFileName);
 
-            System.out.println("Reading RDB file: " + dbfilename + " in directory: " + dir);
+            System.out.println("Reading RDB file: " + dbFileName + " in directory: " + dir);
 
             // Set the parameters in the persistent storage
             Config.getInstance().setConfig("dir", dir);
-            Config.getInstance().setConfig("dbfilename", dbfilename);
+            Config.getInstance().setConfig("dbFileName", dbFileName);
 
             // Read the RDB file
             try {
-                RDBReader.readRDBFile(dir, dbfilename);
+                RDBReader.readRDBFile(dir, dbFileName);
             } catch (IOException e) {
                 System.err.println("IOException: " + e.getMessage());
             }
