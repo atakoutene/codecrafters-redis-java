@@ -14,7 +14,7 @@ public class Main {
             logger.config("args[" + i + "]: " + args[i]);
             // Process all the arguments
             if (args[i].startsWith("--")) {
-                String arg = args[i].split("--")[1];
+                String arg = args[i];
                 String value = args[i + 1];
                 processArgument(arg, value);
             }
