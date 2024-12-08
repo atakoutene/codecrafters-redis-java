@@ -72,7 +72,6 @@ public class ProtocolParser {
     private static String handleInfoCommand(String[] parts) {
         logger.info("Handling INFO command with parts: " + Arrays.toString(parts));
 
-        // Check if the command is for the replication section
         if (parts.length > 1 && parts[1].equalsIgnoreCase("REPLICATION")) {
             return handleInfoReplicationCommand();
         }
@@ -83,11 +82,9 @@ public class ProtocolParser {
     private static String handleInfoReplicationCommand() {
         logger.info("Handling INFO REPLICATION command");
 
-        // Create the response for the replication section
-        //$11\r\nrole:master\r\n
-        String response = "role:master";
+        String role = CONFIG.isReplica() ? "slave" : "master";
+        String response = "role:" + role;
 
-        // Return the response as a Bulk string
         return "$" + response.length() + "\r\n" + response + "\r\n";
     }
     private static String handlePingCommand() {
