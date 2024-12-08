@@ -83,7 +83,10 @@ public class ProtocolParser {
         logger.info("Handling INFO REPLICATION command");
 
         String role = CONFIG.getConfig("replicaof") != null ? "slave" : "master";
-        String response = "role:" + role;
+        String masterReplId = Master.getReplicationId();
+        long masterReplOffset = Master.getReplicationOffset();
+
+        String response = String.format("role:%s\r\nmaster_replid:%s\r\nmaster_repl_offset:%d\r\n", role, masterReplId, masterReplOffset);
 
         return "$" + response.length() + "\r\n" + response + "\r\n";
     }
