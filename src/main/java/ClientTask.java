@@ -42,6 +42,7 @@ public class ClientTask implements Runnable {
 
                 // Check if the command is a write command
                 if (isWriteCommand(command)) {
+                    logger.info("Propagating command to replicas: " + command);
                     master.propagateCommand(command);
                 }
             }
