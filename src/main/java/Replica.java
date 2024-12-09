@@ -1,6 +1,6 @@
-// src/main/java/Replica.java
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.logging.Logger;
@@ -20,44 +20,32 @@ public class Replica {
     public void start() {
         try (Socket masterSocket = new Socket(masterHost, masterPort);
              OutputStream out = masterSocket.getOutputStream();
-             InputStream in = masterSocket.getInputStream()) {
+             BufferedReader in = new BufferedReader(new InputStreamReader(masterSocket.getInputStream()))) {
 
             logger.info("Connected to master at " + masterHost + ":" + masterPort);
 
             // Send PING command
             out.write("*1\r\n$4\r\nPING\r\n".getBytes());
             out.flush();
-            String response = new String(in.readAllBytes());
+            String response = in.readLine();
             logger.info("Received response from master: " + response);
 
             // Send REPLCONF listening-port command
             String replconfListeningPort = String.format("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n%d\r\n", replicaPort);
             out.write(replconfListeningPort.getBytes());
             out.flush();
-            response = new String(in.readAllBytes());
+            response = in.readLine();
             logger.info("Received response from master: " + response);
 
             // Send REPLCONF capa psync2 command
             String replconfCapaPsync2 = "*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n";
             out.write(replconfCapaPsync2.getBytes());
             out.flush();
-            response = new String(in.readAllBytes());
+            response = in.readLine();
             logger.info("Received response from master: " + response);
 
         } catch (IOException e) {
             logger.severe("Error connecting to master: " + e.getMessage());
         }
-    }
-
-    public String getMasterHost() {
-        return masterHost;
-    }
-
-    public int getMasterPort() {
-        return masterPort;
-    }
-
-    public int getReplicaPort() {
-        return replicaPort;
     }
 }
