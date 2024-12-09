@@ -1,3 +1,5 @@
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -22,7 +24,7 @@ public class ProtocolParser {
     // Get the persistent storage instance
     private static final Config CONFIG = Config.getInstance();
 
-    public static String parse(String command) {
+    public static String parse(String command, OutputStream out) throws IOException {
         logger.info("Received command: " + command);
 
         if (command == null || command.isEmpty()) {
@@ -69,7 +71,7 @@ public class ProtocolParser {
             return handleKeyCommand(parts);
         }
         else if (uppercasedCommand.contains(CommandType.PSYNC.toString())) {
-            return Master.handlePsyncCommand(parts);
+            return Master.handlePsyncCommand(parts, out);
         }
         // Check if the command contains an unknown command
         else {

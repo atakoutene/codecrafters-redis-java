@@ -1,5 +1,6 @@
 // src/main/java/Master.java
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -67,10 +68,31 @@ public class Master {
         return "-ERR unknown REPLCONF command\r\n";
     }
 
-    public static String handlePsyncCommand(String[] parts) {
+    public static String handlePsyncCommand(String[] parts, OutputStream out) throws IOException {
         if (parts[1].equals("?") && parts[3].equals("-1")) {
-            return "+FULLRESYNC " + REPLICATION_ID + " 0\r\n";
+            String fullResyncResponse = "+FULLRESYNC " + REPLICATION_ID + " 0\r\n";
+            out.write(fullResyncResponse.getBytes());
+            out.flush();
+
+            // Hex representation of an empty RDB file
+            String rdbHex = "524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2";
+            byte[] rdbBytes = hexStringToByteArray(rdbHex);
+            String rdbFile = "$" + rdbBytes.length + "\r\n" + new String(rdbBytes) + "\r\n";
+            out.write(rdbFile.getBytes());
+            out.flush();
+
+            return null;
         }
         return "-ERR unknown PSYNC command\r\n";
+    }
+
+    private static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i + 1), 16));
+        }
+        return data;
     }
 }

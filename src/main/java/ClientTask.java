@@ -31,9 +31,11 @@ public class ClientTask implements Runnable {
                 String command = new String(bytes, 0, bytesRead);
 
                 // Parse the command
-                String response = ProtocolParser.parse(command);
-                out.write(response.getBytes());
-                out.flush();
+                String response = ProtocolParser.parse(command, out);
+                if (response != null) {
+                    out.write(response.getBytes());
+                    out.flush();
+                }
             }
 
         } catch (IOException e) {
