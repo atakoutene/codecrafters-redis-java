@@ -49,6 +49,11 @@ public class Replica {
             response = in.readLine();
             logger.info("Received response from master: " + response);
 
+            // Process commands from master
+            while ((response = in.readLine()) != null) {
+                ProtocolParser.parse(response, null);
+            }
+
         } catch (IOException e) {
             logger.severe("Error connecting to master: " + e.getMessage());
         }

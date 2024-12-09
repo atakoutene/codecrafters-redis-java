@@ -1,4 +1,3 @@
-// src/main/java/Master.java
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -15,6 +14,7 @@ public class Master {
     private static final long REPLICATION_OFFSET = 0;
     private final int port;
     private final ExecutorService threadPool;
+    private static final List<OutputStream> replicaStreams = new ArrayList<>();
 
     private static final List<Integer> slavesPort = new ArrayList<>();
 
@@ -31,7 +31,7 @@ public class Master {
 
             while (true) {
                 final Socket clientSocket = serverSocket.accept();
-                ClientTask clientTask = new ClientTask(clientSocket);
+                ClientTask clientTask = new ClientTask(clientSocket, this);
                 threadPool.submit(clientTask);
             }
         } catch (IOException e) {
@@ -55,6 +55,21 @@ public class Master {
 
     public List<Integer> getSlavesPort() {
         return slavesPort;
+    }
+
+    public static synchronized void addReplica(OutputStream out) {
+        replicaStreams.add(out);
+    }
+
+    public synchronized void propagateCommand(String command) {
+        for (OutputStream out : replicaStreams) {
+            try {
+                out.write(command.getBytes());
+                out.flush();
+            } catch (IOException e) {
+                logger.severe("Error propagating command to replica: " + e.getMessage());
+            }
+        }
     }
 
     public static String handleReplconfCommand(String[] parts) {
@@ -84,9 +99,11 @@ public class Master {
             out.write(contents);
             out.flush();
 
+            // Add the OutputStream to the replicaStreams list
+            addReplica(out);
+
             return null;
         }
         return "-ERR unknown PSYNC command\r\n";
     }
-
 }
