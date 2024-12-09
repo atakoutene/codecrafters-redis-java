@@ -32,6 +32,7 @@ public class ClientTask implements Runnable {
             while ((bytesRead = in.read(bytes)) != -1) {
                 // Convert the bytes to a string
                 String command = new String(bytes, 0, bytesRead);
+                logger.info("Received command From Task: " + command);
 
                 // Parse the command
                 String response = ProtocolParser.parse(command, out);
