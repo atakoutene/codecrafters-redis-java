@@ -4,6 +4,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,9 +76,9 @@ public class Master {
             out.flush();
 
             // Hex representation of an empty RDB file
-            String rdbHex = "524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2";
-            byte[] rdbBytes = hexStringToByteArray(rdbHex);
-            String rdbFile = "$" + rdbBytes.length + "\r\n" + new String(rdbBytes) + "\r\n";
+            byte[] contents = HexFormat.of().parseHex(
+                    "524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2");
+            String rdbFile = "$" + contents.length + "\r\n" + contents + "\r\n";
             out.write(rdbFile.getBytes());
             out.flush();
 
@@ -86,13 +87,4 @@ public class Master {
         return "-ERR unknown PSYNC command\r\n";
     }
 
-    private static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i + 1), 16));
-        }
-        return data;
-    }
 }
