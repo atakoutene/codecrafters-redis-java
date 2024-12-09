@@ -6,5 +6,6 @@ public enum CommandType {
     CONFIG,
     KEYS,
     INFO,
-    REPLCONF
+    REPLCONF,
+    PSYNC
 }

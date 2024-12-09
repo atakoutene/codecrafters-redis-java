@@ -66,4 +66,11 @@ public class Master {
         }
         return "-ERR unknown REPLCONF command\r\n";
     }
+
+    public static String handlePsyncCommand(String[] parts) {
+        if (parts[1].equals("?") && parts[2].equals("-1")) {
+            return "+FULLRESYNC " + REPLICATION_ID + " 0\r\n";
+        }
+        return "-ERR unknown PSYNC command\r\n";
+    }
 }

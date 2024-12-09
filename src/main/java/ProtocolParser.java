@@ -68,6 +68,9 @@ public class ProtocolParser {
         else if (uppercasedCommand.contains(CommandType.KEYS.toString())) {
             return handleKeyCommand(parts);
         }
+        else if (uppercasedCommand.contains(CommandType.PSYNC.toString())) {
+            return Master.handlePsyncCommand(parts);
+        }
         // Check if the command contains an unknown command
         else {
             return handleUnknownCommand();
