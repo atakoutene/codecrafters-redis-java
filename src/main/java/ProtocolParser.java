@@ -69,6 +69,10 @@ public class ProtocolParser {
         }
     }
 
+    public static String bulkString(String value) {
+        return "$" + value.length() + "\r\n" + value + "\r\n";
+    }
+
     private static String handleInfoCommand(String[] parts) {
         logger.info("Handling INFO command with parts: " + Arrays.toString(parts));
 
@@ -88,7 +92,7 @@ public class ProtocolParser {
 
         String response = String.format("role:%s\r\nmaster_replid:%s\r\nmaster_repl_offset:%d\r\n", role, masterReplId, masterReplOffset);
 
-        return "$" + response.length() + "\r\n" + response + "\r\n";
+        return bulkString(response);
     }
     private static String handlePingCommand() {
         logger.info("Handling PING command");
@@ -156,7 +160,7 @@ public class ProtocolParser {
         }
 
         logger.info("GET, this is the received value: " + value);
-        return "$" + value.length() + "\r\n" + value + "\r\n";
+        return bulkString(value);
     }
 
     private static String handleEchoCommand(String[] parts) {
@@ -167,7 +171,7 @@ public class ProtocolParser {
 
         logger.info("Echo result: " + lastPart);
 
-        return "$" + lastPart.length() + "\r\n" + lastPart + "\r\n";
+        return bulkString(lastPart);
     }
 
     private static String handleConfigCommand(String[] parts) {
@@ -209,7 +213,7 @@ public class ProtocolParser {
 
         // Filter the keys that match the pattern
         String filteredKeys = Arrays.stream(keys)
-                .reduce("", (acc, key) -> acc + "$" + key.length() + "\r\n" + key + "\r\n");
+                .reduce("", (acc, key) -> acc + bulkString(key));
 
         logger.info("Filtered keys: " + filteredKeys);
 
