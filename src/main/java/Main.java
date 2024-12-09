@@ -27,7 +27,6 @@ public class Main {
             }
         }
 
-        // RDB file execution
         String dbFileName = Config.getInstance().getConfig("dbfilename");
         String dir = Config.getInstance().getConfig("dir");
         if (dbFileName != null && dir != null) {
@@ -39,11 +38,9 @@ public class Main {
         }
 
         if (isReplica) {
-            // Start the replica
             Replica replica = new Replica(masterHost, masterPort);
             replica.start();
         } else {
-            // Start the master
             Master master = new Master(port);
             master.start();
         }

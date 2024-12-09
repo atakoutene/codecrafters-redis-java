@@ -15,7 +15,6 @@ public class Master {
     private final int port;
     private final ExecutorService threadPool;
     private static final List<OutputStream> replicaStreams = new ArrayList<>();
-
     private static final List<Integer> slavesPort = new ArrayList<>();
 
     public Master(int port) {
@@ -89,17 +88,13 @@ public class Master {
             out.write(fullResyncResponse.getBytes());
             out.flush();
 
-            // Hex representation of an empty RDB file
             byte[] contents = HexFormat.of().parseHex(
                     "524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2");
-            // Write the length of the RDB file
             String length = "$" + contents.length + "\r\n";
             out.write(length.getBytes());
-            // Write the contents of the RDB file
             out.write(contents);
             out.flush();
 
-            // Add the OutputStream to the replicaStreams list
             addReplica(out);
 
             return null;
