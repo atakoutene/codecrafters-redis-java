@@ -37,7 +37,7 @@ public class Main {
         }
         //start the master or replica
         if (isReplica) {
-            Replica replica = new Replica(masterHost, masterPort, port);
+            Replica replica = new Replica(masterHost, masterPort);
             replica.start();
         }
         //always create a master instance in case of no replica
