@@ -1,5 +1,7 @@
 // src/main/java/Replica.java
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
@@ -17,14 +19,15 @@ public class Replica {
 
     public void start() {
         try (Socket MasterSocket = new Socket(masterHost, masterPort);
-             PrintWriter out = new PrintWriter(MasterSocket.getOutputStream(), true);
-             Scanner in = new Scanner(MasterSocket.getInputStream())) {
+             OutputStream out = MasterSocket.getOutputStream();
+             InputStream in = MasterSocket.getInputStream()) {
 
             logger.info("Connected to master at " + masterHost + ":" + masterPort);
 
             // Example of sending a command to the master
-            out.print("*1\r\n$4\r\nPING\r\n");
-            String response = in.nextLine();
+            out.write("*1\r\n$4\r\nPING\r\n".getBytes());
+            out.flush();
+            String response = new String(in.readAllBytes());
             logger.info("Received response from master: " + response);
 
             // Handle the response from the master
