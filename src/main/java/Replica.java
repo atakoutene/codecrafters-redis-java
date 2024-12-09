@@ -9,12 +9,10 @@ public class Replica {
     private static final Logger logger = Logger.getLogger(Replica.class.getName());
     private final String masterHost;
     private final int masterPort;
-    //private final int replicaPort;
 
     public Replica(String masterHost, int masterPort) {
         this.masterHost = masterHost;
         this.masterPort = masterPort;
-        //this.replicaPort = replicaPort;
     }
 
     public void start() {
@@ -31,7 +29,7 @@ public class Replica {
             logger.info("Received response from master: " + response);
 
             // Send REPLCONF listening-port command
-            String replconfListeningPort = String.format("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n6380\r\n");
+            String replconfListeningPort = "*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n6380\r\n";
             out.write(replconfListeningPort.getBytes());
             out.flush();
             response = in.readLine();
@@ -40,6 +38,13 @@ public class Replica {
             // Send REPLCONF capa psync2 command
             String replconfCapaPsync2 = "*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n";
             out.write(replconfCapaPsync2.getBytes());
+            out.flush();
+            response = in.readLine();
+            logger.info("Received response from master: " + response);
+
+            // Send PSYNC command
+            String psyncCommand = "*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n";
+            out.write(psyncCommand.getBytes());
             out.flush();
             response = in.readLine();
             logger.info("Received response from master: " + response);

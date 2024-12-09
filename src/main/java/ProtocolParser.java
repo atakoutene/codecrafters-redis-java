@@ -7,14 +7,14 @@ public class ProtocolParser {
 
     private static final Logger logger = Logger.getLogger(ProtocolParser.class.getName());
 
-    private static final String ECHO_COMMAND = "ECHO";
-    private static final String PING_COMMAND = "PING";
-    private static final String GET_COMMAND = "GET";
-    private static final String SET_COMMAND = "SET";
-    private static final String CONFIG_COMMAND = "CONFIG";
-    private static final String KEY_COMMAND = "KEYS";
-    private static final String INFO_COMMAND = "INFO";
-    private static final String REPLCONF_COMMAND = "REPLCONF";
+//    private static final String ECHO_COMMAND = "ECHO";
+//    private static final String PING_COMMAND = "PING";
+//    private static final String GET_COMMAND = "GET";
+//    private static final String SET_COMMAND = "SET";
+//    private static final String CONFIG_COMMAND = "CONFIG";
+//    private static final String KEY_COMMAND = "KEYS";
+//    private static final String INFO_COMMAND = "INFO";
+//    private static final String REPLCONF_COMMAND = "REPLCONF";
 
     // Get the singleton instance of the RedisServer
     private static final Cache redisServer = Cache.getInstance();
@@ -41,31 +41,31 @@ public class ProtocolParser {
         logger.info("Command parts: " + Arrays.toString(parts));
 
         // Check if the command contains the INFO command
-        if (uppercasedCommand.contains(INFO_COMMAND)) {
+        if (uppercasedCommand.contains(CommandType.INFO.toString())) {
             return handleInfoCommand(parts);
         }
         // Check if the command contains the REPLCONF command
-        else if (uppercasedCommand.contains(REPLCONF_COMMAND)) {
-            return Master.handleReplConfCommand(parts);
+        else if (uppercasedCommand.contains(CommandType.REPLCONF.toString())) {
+            return Master.handleReplconfCommand(parts);
         }
         // Check if the command contains the PING command
-        else if (uppercasedCommand.contains(PING_COMMAND)) {
+        else if (uppercasedCommand.contains(CommandType.PING.toString())) {
             return handlePingCommand();
         }
         // Check if the command contains the ECHO command
-        else if (uppercasedCommand.contains(ECHO_COMMAND)) {
+        else if (uppercasedCommand.contains(CommandType.ECHO.toString())) {
             return handleEchoCommand(parts);
         }
-        else if (uppercasedCommand.contains(CONFIG_COMMAND)) {
+        else if (uppercasedCommand.contains(CommandType.CONFIG.toString())) {
             return handleConfigCommand(parts);
         }
-        else if (uppercasedCommand.contains(GET_COMMAND)) {
+        else if (uppercasedCommand.contains(CommandType.GET.toString())) {
             return handleGetCommand(parts);
         }
-        else if (uppercasedCommand.contains(SET_COMMAND)) {
+        else if (uppercasedCommand.contains(CommandType.SET.toString())) {
             return handleSetCommand(parts);
         }
-        else if (uppercasedCommand.contains(KEY_COMMAND)) {
+        else if (uppercasedCommand.contains(CommandType.KEYS.toString())) {
             return handleKeyCommand(parts);
         }
         // Check if the command contains an unknown command
