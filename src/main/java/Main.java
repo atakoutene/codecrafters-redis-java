@@ -6,11 +6,20 @@ public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
+        boolean isReplica = false;
+        String masterHost = null;
+        int masterPort = 0;
         for (int i = 0; i < args.length; i++) {
             logger.config("args[" + i + "]: " + args[i]);
             if (args[i].startsWith("--")) {
                 String arg = args[i];
                 String value = args[i + 1];
+                if (arg.equals("--replicaof")) {
+                    isReplica = true;
+                    String[] masterInfo = value.split(" ");
+                    masterHost = masterInfo[0];
+                    masterPort = Integer.parseInt(masterInfo[1]);
+                }
                 processArgument(arg, value);
             }
         }
@@ -26,9 +35,14 @@ public class Main {
                 throw new RuntimeException(e);
             }
         }
-        //start the master
-        Master master = new Master(port);
-        master.start();
+        //start the master or replica
+        if (isReplica) {
+            Replica replica = new Replica(masterHost, masterPort);
+            replica.start();
+        } else {
+            Master master = new Master(port);
+            master.start();
+        }
     }
 
     private static void processArgument(String arg, String value) {
