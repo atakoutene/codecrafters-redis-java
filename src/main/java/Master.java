@@ -61,7 +61,7 @@ public class Master {
             int port = Integer.parseInt(parts[3]);
             addSlavePort(port);
             return "+OK\r\n";
-        } else if (parts[1].equalsIgnoreCase("capa") && parts[2].equalsIgnoreCase("psync2")) {
+        } else if (parts[1].equalsIgnoreCase("capa") && parts[3].equalsIgnoreCase("psync2")) {
             return "+OK\r\n";
         }
         return "-ERR unknown REPLCONF command\r\n";
