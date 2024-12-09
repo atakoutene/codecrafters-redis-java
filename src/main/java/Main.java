@@ -35,16 +35,15 @@ public class Main {
                 throw new RuntimeException(e);
             }
         }
-        //start the server
-        //always create a master instance in case of no replica
+        //always create a master instance
         Master master = new Master(port);
         master.start();
-        //start the master or replicas
+
+        //start the replica if specified
         if (isReplica) {
             Replica replica = new Replica(masterHost, masterPort);
             replica.start();
         }
-
     }
 
     private static void processArgument(String arg, String value) {
