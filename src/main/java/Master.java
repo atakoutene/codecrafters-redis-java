@@ -77,9 +77,9 @@ public class Master {
             // Hex representation of an empty RDB file
             byte[] contents = HexFormat.of().parseHex(
                     "524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2");
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
             // Write the length of the RDB file
-            writer.write("$" + contents.length + "\r\n");
+            String length = "$" + contents.length + "\r\n";
+            out.write(length.getBytes());
             // Write the contents of the RDB file
             out.write(contents);
             out.flush();
