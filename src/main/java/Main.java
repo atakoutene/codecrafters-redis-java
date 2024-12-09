@@ -40,6 +40,7 @@ public class Main {
             Replica replica = new Replica(masterHost, masterPort);
             replica.start();
         }
+        //always create a master instance in case of no replica
         Master master = new Master(port);
         master.start();
     }

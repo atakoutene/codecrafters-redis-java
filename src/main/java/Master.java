@@ -2,6 +2,8 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -13,13 +15,15 @@ public class Master {
     private final int port;
     private final ExecutorService threadPool;
 
+    private static final List<Integer> slavesPort = new ArrayList<>();
+
     public Master(int port) {
         this.port = port;
         this.threadPool = Executors.newFixedThreadPool(10);
     }
 
     public void start() {
-        logger.info("TEST: Master started on port: " + port);
+        logger.info("Master started on port: " + port);
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             serverSocket.setReuseAddress(true);
@@ -42,5 +46,24 @@ public class Master {
 
     public static long getReplicationOffset() {
         return REPLICATION_OFFSET;
+    }
+
+    public static void addSlavePort(int port) {
+        slavesPort.add(port);
+    }
+
+    public List<Integer> getSlavesPort() {
+        return slavesPort;
+    }
+
+    public static String handleReplconfCommand(String[] parts) {
+        if (parts.length == 3 && parts[1].equalsIgnoreCase("listening-port")) {
+            int port = Integer.parseInt(parts[2]);
+            addSlavePort(port);
+            return "+OK\r\n";
+        } else if (parts.length == 3 && parts[1].equalsIgnoreCase("capa") && parts[2].equalsIgnoreCase("psync2")) {
+            return "+OK\r\n";
+        }
+        return "-ERR unknown REPLCONF command\r\n";
     }
 }

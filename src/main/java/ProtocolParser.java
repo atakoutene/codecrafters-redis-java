@@ -14,6 +14,7 @@ public class ProtocolParser {
     private static final String CONFIG_COMMAND = "CONFIG";
     private static final String KEY_COMMAND = "KEYS";
     private static final String INFO_COMMAND = "INFO";
+    private static final String REPLCONF_COMMAND = "REPLCONF";
 
     // Get the singleton instance of the RedisServer
     private static final Cache redisServer = Cache.getInstance();
@@ -42,6 +43,10 @@ public class ProtocolParser {
         // Check if the command contains the INFO command
         if (uppercasedCommand.contains(INFO_COMMAND)) {
             return handleInfoCommand(parts);
+        }
+        // Check if the command contains the REPLCONF command
+        else if (uppercasedCommand.contains(REPLCONF_COMMAND)) {
+            return Master.handleReplconfCommand(parts);
         }
         // Check if the command contains the PING command
         else if (uppercasedCommand.contains(PING_COMMAND)) {
