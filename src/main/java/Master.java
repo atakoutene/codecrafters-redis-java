@@ -19,7 +19,7 @@ public class Master {
     }
 
     public void start() {
-        System.out.println("TEST: Master started on port: " + port);
+        logger.info("TEST: Master started on port: " + port);
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             serverSocket.setReuseAddress(true);
