@@ -41,10 +41,8 @@ public class Main {
             replica.start();
         }
         //always create a master instance in case of no replica
-        else {
-            Master master = new Master(port);
-            master.start();
-        }
+        Master master = new Master(port);
+        master.start();
     }
 
     private static void processArgument(String arg, String value) {
