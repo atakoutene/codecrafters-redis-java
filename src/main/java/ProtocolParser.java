@@ -46,7 +46,7 @@ public class ProtocolParser {
         }
         // Check if the command contains the REPLCONF command
         else if (uppercasedCommand.contains(REPLCONF_COMMAND)) {
-            return Master.handleReplconfCommand(parts);
+            return Master.handleReplConfCommand(parts);
         }
         // Check if the command contains the PING command
         else if (uppercasedCommand.contains(PING_COMMAND)) {

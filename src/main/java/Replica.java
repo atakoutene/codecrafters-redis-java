@@ -48,4 +48,16 @@ public class Replica {
             logger.severe("Error connecting to master: " + e.getMessage());
         }
     }
+
+    public String getMasterHost() {
+        return masterHost;
+    }
+
+    public int getMasterPort() {
+        return masterPort;
+    }
+
+    public int getReplicaPort() {
+        return replicaPort;
+    }
 }

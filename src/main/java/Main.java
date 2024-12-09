@@ -37,12 +37,14 @@ public class Main {
         }
         //start the master or replica
         if (isReplica) {
-            Replica replica = new Replica(masterHost, masterPort);
+            Replica replica = new Replica(masterHost, masterPort, port);
             replica.start();
         }
         //always create a master instance in case of no replica
-        Master master = new Master(port);
-        master.start();
+        else {
+            Master master = new Master(port);
+            master.start();
+        }
     }
 
     private static void processArgument(String arg, String value) {

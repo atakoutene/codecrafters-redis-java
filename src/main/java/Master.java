@@ -56,7 +56,7 @@ public class Master {
         return slavesPort;
     }
 
-    public static String handleReplconfCommand(String[] parts) {
+    public static String handleReplConfCommand(String[] parts) {
         if (parts.length == 3 && parts[1].equalsIgnoreCase("listening-port")) {
             int port = Integer.parseInt(parts[2]);
             addSlavePort(port);
