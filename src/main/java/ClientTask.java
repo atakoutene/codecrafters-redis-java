@@ -32,7 +32,7 @@ public class ClientTask implements Runnable {
             while ((bytesRead = in.read(bytes)) != -1) {
                 // Convert the bytes to a string
                 String command = new String(bytes, 0, bytesRead);
-                logger.info("Received command From Task: " + command);
+                //logger.info("Received command From Task: " + command);
 
                 // Parse the command
                 String response = ProtocolParser.parse(command, out);
@@ -62,7 +62,7 @@ public class ClientTask implements Runnable {
 
     }
     private boolean isWriteCommand(String command) {
-        return command.startsWith("SET") || command.startsWith("DEL");
+        return command.contains("SET") || command.contains("DEL");
     }
 
     }
