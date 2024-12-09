@@ -1,4 +1,3 @@
-// src/main/java/Main.java
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -9,6 +8,8 @@ public class Main {
         boolean isReplica = false;
         String masterHost = null;
         int masterPort = 0;
+        int port = 6379; // Default port for master
+
         for (int i = 0; i < args.length; i++) {
             logger.config("args[" + i + "]: " + args[i]);
             if (args[i].startsWith("--")) {
@@ -19,13 +20,14 @@ public class Main {
                     String[] masterInfo = value.split(" ");
                     masterHost = masterInfo[0];
                     masterPort = Integer.parseInt(masterInfo[1]);
+                } else if (arg.equals("--port")) {
+                    port = Integer.parseInt(value);
                 }
                 processArgument(arg, value);
             }
         }
-        String portLiteral = Config.getInstance().getConfig("port");
-        int port = Integer.parseInt(portLiteral != null ? portLiteral : "6379");
-        //RDB file execution
+
+        // RDB file execution
         String dbFileName = Config.getInstance().getConfig("dbfilename");
         String dir = Config.getInstance().getConfig("dir");
         if (dbFileName != null && dir != null) {
@@ -35,14 +37,15 @@ public class Main {
                 throw new RuntimeException(e);
             }
         }
-        //always create a master instance
-        Master master = new Master(port);
-        master.start();
 
-        //start the replica if specified
         if (isReplica) {
+            // Start the replica
             Replica replica = new Replica(masterHost, masterPort);
             replica.start();
+        } else {
+            // Start the master
+            Master master = new Master(port);
+            master.start();
         }
     }
 
