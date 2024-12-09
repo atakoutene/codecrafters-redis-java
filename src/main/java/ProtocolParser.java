@@ -9,15 +9,6 @@ public class ProtocolParser {
 
     private static final Logger logger = Logger.getLogger(ProtocolParser.class.getName());
 
-//    private static final String ECHO_COMMAND = "ECHO";
-//    private static final String PING_COMMAND = "PING";
-//    private static final String GET_COMMAND = "GET";
-//    private static final String SET_COMMAND = "SET";
-//    private static final String CONFIG_COMMAND = "CONFIG";
-//    private static final String KEY_COMMAND = "KEYS";
-//    private static final String INFO_COMMAND = "INFO";
-//    private static final String REPLCONF_COMMAND = "REPLCONF";
-
     // Get the singleton instance of the RedisServer
     private static final Cache redisServer = Cache.getInstance();
 
@@ -38,6 +29,11 @@ public class ProtocolParser {
 
         // Split the string according to the new line character \r\n
         String[] parts = command.split("\r\n");
+        if (parts.length < 3) {
+            logger.warning("Invalid command format");
+            return "-ERR invalid command format\r\n";
+        }
+
         // Remove the first three parts of the array as they are: number of arguments in given RESP array, command length and command
         parts = Arrays.copyOfRange(parts, 3, parts.length);
         logger.info("Command parts: " + Arrays.toString(parts));
@@ -113,7 +109,6 @@ public class ProtocolParser {
         logger.info("Handling SET command with parts: " + Arrays.toString(parts));
 
         // Get the key length and the key
-        // int keyLength = Integer.parseInt(parts[0].substring(1));
         String key = parts[1];
         logger.info("Key: " + key);
 
@@ -128,7 +123,6 @@ public class ProtocolParser {
                 logger.info("Expiry parameter detected: " + parameter);
 
                 // Get the expiry time
-                // int expiryLength = Integer.parseInt(parts[6].substring(1));
                 int expiryTime = Integer.parseInt(parts[7]);
 
                 logger.info("Parsed expiry time: " + expiryTime + " milliseconds");
@@ -156,7 +150,6 @@ public class ProtocolParser {
         logger.info("Handling GET command with parts: " + Arrays.toString(parts));
 
         // Get the key length and the key
-        // int keyLength = Integer.parseInt(parts[0].substring(1));
         String key = parts[1];
         logger.info("Key: " + key);
 
