@@ -23,7 +23,7 @@ public class Replica {
             logger.info("Connected to master at " + masterHost + ":" + masterPort);
 
             // Example of sending a command to the master
-            out.println("*1\r\n$4\r\nPING\r\n");
+            out.print("*1\r\n$4\r\nPING\r\n");
             String response = in.nextLine();
             logger.info("Received response from master: " + response);
 
