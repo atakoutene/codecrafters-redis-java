@@ -9,7 +9,7 @@ public class Config {
     private final Map<String, String> config = new ConcurrentHashMap<>();
     private Logger logger = Logger.getLogger(Config.class.getName());
 
-    static Map<Integer, Object> table = new ConcurrentHashMap<>();
+
 
     private Config() {
     }
