@@ -8,7 +8,7 @@ public class Main {
         boolean isReplica = false;
         String masterHost = null;
         int masterPort = 0;
-        int port = 6379; // Default port for master
+        int port = 6379;
 
         for (int i = 0; i < args.length; i++) {
             logger.config("args[" + i + "]: " + args[i]);
