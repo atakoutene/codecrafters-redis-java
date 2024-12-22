@@ -40,7 +40,7 @@ public class Main {
         if (isReplica) {
             //start master
 
-            Replica replica = new Replica(masterHost, masterPort);
+            Replica replica = new Replica(masterHost, masterPort, port);
             replica.start();
         } else {
             Master master = new Master(port);

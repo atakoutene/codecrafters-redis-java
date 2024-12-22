@@ -71,17 +71,11 @@ public class Master {
         }
     }
 
-    public static String handleReplconfCommand(String[] parts) {
+    public static String handleReplconfCommand(String[] parts, OutputStream out) {
         if (parts[1].equalsIgnoreCase("listening-port")) {
             int port = Integer.parseInt(parts[3]);
             addSlavePort(port);
-            try {
-                Socket replicaSocket = new Socket("localhost", port);
-                OutputStream out = replicaSocket.getOutputStream();
-                addReplica(out);  // Register the replica's OutputStream
-            } catch (IOException e) {
-                logger.severe("Error getting OutputStream for replica: " + e.getMessage());
-            }
+            addReplica(out);  // Register the replica's OutputStream
             return "+OK\r\n";
         } else if (parts[1].equalsIgnoreCase("capa") && parts[3].equalsIgnoreCase("psync2")) {
             return "+OK\r\n";
