@@ -61,15 +61,18 @@ public class Master {
     }
 
     public synchronized void propagateCommand(String command) {
+        List<OutputStream> toRemove = new ArrayList<>();
         for (OutputStream out : replicaStreams) {
             try {
                 logger.info("Sending command to replica: " + command);
                 out.write(command.getBytes());
                 out.flush();
+                toRemove.add(out);
             } catch (IOException e) {
                 logger.severe("Error propagating command to replica: " + e.getMessage());
             }
         }
+        replicaStreams.removeAll(toRemove);
     }
 
     public static String handleReplconfCommand(String[] parts, OutputStream out) {
