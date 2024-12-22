@@ -59,6 +59,7 @@ public class Replica {
 
                 // Process commands from master
                 while ((response = in.readLine()) != null) {
+                    logger.info("Received command from master: " + response);
                     ProtocolParser.parse(response, out);
                 }
 

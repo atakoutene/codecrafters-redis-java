@@ -63,6 +63,7 @@ public class Master {
     public synchronized void propagateCommand(String command) {
         for (OutputStream out : replicaStreams) {
             try {
+                logger.info("Sending command to replica: " + command);
                 out.write(command.getBytes());
                 out.flush();
             } catch (IOException e) {
@@ -86,12 +87,14 @@ public class Master {
     public static String handlePsyncCommand(String[] parts, OutputStream out) throws IOException {
         if (parts[1].equals("?") && parts[3].equals("-1")) {
             String fullResyncResponse = "+FULLRESYNC " + REPLICATION_ID + " 0\r\n";
+            logger.info("Sending command to replica: " + fullResyncResponse.trim());
             out.write(fullResyncResponse.getBytes());
             out.flush();
 
             byte[] contents = HexFormat.of().parseHex(
                     "524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2");
             String length = "$" + contents.length + "\r\n";
+            logger.info("Sending command to replica: " + length.trim());
             out.write(length.getBytes());
             out.write(contents);
             out.flush();
