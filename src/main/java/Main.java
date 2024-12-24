@@ -38,8 +38,6 @@ public class Main {
         }
 
         if (isReplica) {
-            //start master
-
             Replica replica = new Replica(masterHost, masterPort, port);
             replica.start();
         } else {

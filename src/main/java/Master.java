@@ -8,7 +8,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-// This is the master class that handles the replication
 public class Master {
     private static final Logger logger = Logger.getLogger(Master.class.getName());
     private static final String REPLICATION_ID = "8371b4fb1155b71f4a04d3e1bc3e18c4a990aeeb";
@@ -16,7 +15,6 @@ public class Master {
     private final int port;
     private final ExecutorService threadPool;
     private static final List<OutputStream> replicaStreams = new ArrayList<>();
-    private static final List<Integer> slavesPort = new ArrayList<>();
 
     public Master(int port) {
         this.port = port;
@@ -49,20 +47,11 @@ public class Master {
         return REPLICATION_OFFSET;
     }
 
-    public static void addSlavePort(int port) {
-        slavesPort.add(port);
-    }
-
-    public List<Integer> getSlavesPort() {
-        return slavesPort;
-    }
-
     public static synchronized void addReplica(OutputStream out) {
         replicaStreams.add(out);
     }
 
     public synchronized void propagateCommand(String command) {
-        List<OutputStream> toRemove = new ArrayList<>();
         for (OutputStream out : replicaStreams) {
             try {
                 logger.info("Sending command to replica: " + command);
@@ -70,16 +59,12 @@ public class Master {
                 out.flush();
             } catch (IOException e) {
                 logger.severe("Error propagating command to replica: " + e.getMessage());
-                toRemove.add(out);
             }
         }
-        replicaStreams.removeAll(toRemove);
     }
 
     public static String handleReplconfCommand(String[] parts, OutputStream out) {
         if (parts[1].equalsIgnoreCase("listening-port")) {
-            int port = Integer.parseInt(parts[3]);
-            addSlavePort(port);
             addReplica(out);  // Register the replica's OutputStream
             return "+OK\r\n";
         } else if (parts[1].equalsIgnoreCase("capa") && parts[3].equalsIgnoreCase("psync2")) {

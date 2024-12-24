@@ -51,7 +51,6 @@ public class ClientTask implements Runnable {
     }
 
     private boolean isWriteCommand(String command) {
-
         return command.contains("SET") || command.contains("DEL");
     }
 }
