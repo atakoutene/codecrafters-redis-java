@@ -68,9 +68,9 @@ public class Master {
                 logger.info("Sending command to replica: " + command);
                 out.write(command.getBytes());
                 out.flush();
-                toRemove.add(out);
             } catch (IOException e) {
                 logger.severe("Error propagating command to replica: " + e.getMessage());
+                toRemove.add(out);
             }
         }
         replicaStreams.removeAll(toRemove);
