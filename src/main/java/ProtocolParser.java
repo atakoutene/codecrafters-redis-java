@@ -29,10 +29,14 @@ public class ProtocolParser {
 
         // Split the string according to the new line character \r\n
         String[] parts = command.split("\r\n");
-        if (parts.length < 2) {
+        if (parts.length < 3) {
             logger.warning("Invalid command format");
             return "-ERR invalid command format\r\n";
         }
+
+        // Remove the first three parts of the array as they are: number of arguments in given RESP array, command length and command
+        parts = Arrays.copyOfRange(parts, 3, parts.length);
+        logger.info("Command parts: " + Arrays.toString(parts));
 
         // Check if the command contains the INFO command
         if (uppercasedCommand.contains(CommandType.INFO.toString())) {
@@ -96,7 +100,6 @@ public class ProtocolParser {
 
         return bulkString(response);
     }
-
     private static String handlePingCommand() {
         logger.info("Handling PING command");
         return "+PONG\r\n";
