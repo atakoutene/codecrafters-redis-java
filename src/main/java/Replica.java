@@ -76,7 +76,7 @@ public class Replica {
                 response = new String(buffer, 0, bytesRead);
                 logger.info("Received response from master: " + response);
 
-                // Process commands from master
+                // Process FULLRESYNC and RDB file
                 StringBuilder commandBuffer = new StringBuilder();
                 while ((bytesRead = in.read(buffer)) != -1) {
                     commandBuffer.append(new String(buffer, 0, bytesRead));
@@ -84,7 +84,20 @@ public class Replica {
                     for (int i = 0; i < commands.length - 1; i++) {
                         String command = commands[i] + "\r\n";
                         logger.info("Received command from master: " + command);
-                        ProtocolParser.parse(command, out);
+                        if (command.startsWith("+FULLRESYNC")) {
+                            // Handle FULLRESYNC command
+                            logger.info("Handling FULLRESYNC command");
+                            // Extract RDB file and process it
+                            // Assuming RDB file is received as a bulk string
+                            int rdbStartIndex = command.indexOf("\r\n$") + 3;
+                            int rdbLength = Integer.parseInt(command.substring(rdbStartIndex, command.indexOf("\r\n", rdbStartIndex)));
+                            String rdbData = command.substring(command.indexOf("\r\n", rdbStartIndex) + 2, rdbStartIndex + 2 + rdbLength);
+                            // Process RDB data (this is a placeholder, actual RDB processing logic needed)
+                            logger.info("Received RDB data of length: " + rdbLength);
+                        } else {
+                            // Process other commands (e.g., SET commands)
+                            ProtocolParser.parse(command, out);
+                        }
                     }
                     commandBuffer = new StringBuilder(commands[commands.length - 1]);
                 }
