@@ -1,7 +1,8 @@
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class Replica {
@@ -39,41 +40,47 @@ public class Replica {
         while (true) {
             try (Socket masterSocket = new Socket(masterHost, masterPort);
                  OutputStream out = masterSocket.getOutputStream();
-                 BufferedReader in = new BufferedReader(new InputStreamReader(masterSocket.getInputStream()))) {
+                 InputStream in = masterSocket.getInputStream()) {
 
                 logger.info("Connected to master at " + masterHost + ":" + masterPort);
 
                 // Send PING command
                 out.write("*1\r\n$4\r\nPING\r\n".getBytes());
                 out.flush();
-                String response = in.readLine();
+                byte[] buffer = new byte[1024];
+                int bytesRead = in.read(buffer);
+                String response = new String(buffer, 0, bytesRead);
                 logger.info("Received response from master: " + response);
 
                 // Send REPLCONF listening-port command
                 String replconfListeningPort = String.format("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$%d\r\n%d\r\n", String.valueOf(port).length(), port);
                 out.write(replconfListeningPort.getBytes());
                 out.flush();
-                response = in.readLine();
+                bytesRead = in.read(buffer);
+                response = new String(buffer, 0, bytesRead);
                 logger.info("Received response from master: " + response);
 
                 // Send REPLCONF capa psync2 command
                 String replconfCapaPsync2 = "*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n";
                 out.write(replconfCapaPsync2.getBytes());
                 out.flush();
-                response = in.readLine();
+                bytesRead = in.read(buffer);
+                response = new String(buffer, 0, bytesRead);
                 logger.info("Received response from master: " + response);
 
                 // Send PSYNC command
                 String psyncCommand = "*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n";
                 out.write(psyncCommand.getBytes());
                 out.flush();
-                response = in.readLine();
+                bytesRead = in.read(buffer);
+                response = new String(buffer, 0, bytesRead);
                 logger.info("Received response from master: " + response);
 
                 // Process commands from master
-                while ((response = in.readLine()) != null) {
-                    logger.info("Received command from master: " + Arrays.toString(response.getBytes()));
-                    ProtocolParser.parse(response, out);
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    String command = new String(buffer, 0, bytesRead);
+                    logger.info("Received command from master: " + command);
+                    ProtocolParser.parse(command, out);
                 }
 
             } catch (IOException e) {
