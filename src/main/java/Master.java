@@ -53,15 +53,7 @@ public class Master {
     }
 
     public synchronized void propagateCommand(String command) {
-//        logger.info("Propagating command: " + command + " to all replicas.");
-//        for (OutputStream out : replicaStreams) {
-//            try {
-//                out.write(command.getBytes());
-//                out.flush();
-//            } catch (IOException e) {
-//                logger.severe("Failed to send command to a replica: " + e.getMessage());
-//            }
-//        }
+        // Send the command to all replicas
         threadPool.submit(() -> {
             synchronized (replicaStreams) {
                 for (OutputStream out : replicaStreams) {
@@ -101,7 +93,7 @@ public class Master {
             out.write(length.getBytes());
             out.write(contents);
             out.flush();
-
+            //error here
             //addReplica(out);
 
             return null;
