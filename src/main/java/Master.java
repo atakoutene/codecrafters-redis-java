@@ -1,4 +1,5 @@
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -64,7 +65,6 @@ public class Master {
             }
         }
     }
-
 
     public static String handleReplconfCommand(String[] parts, OutputStream out) {
         if (parts[1].equalsIgnoreCase("listening-port")) {
