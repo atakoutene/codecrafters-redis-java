@@ -53,18 +53,17 @@ public class Master {
     }
 
     public synchronized void propagateCommand(String command) {
-        // Log the command being propagated for debugging
-        logger.info("Sending command to replica: " + command);
-        // For each replica, send the command
+        logger.info("Propagating command: " + command + " to all replicas.");
         for (OutputStream out : replicaStreams) {
             try {
                 out.write(command.getBytes());
                 out.flush();
             } catch (IOException e) {
-                logger.severe("Error propagating command to replica: " + e.getMessage());
+                logger.severe("Failed to send command to a replica: " + e.getMessage());
             }
         }
     }
+
 
     public static String handleReplconfCommand(String[] parts, OutputStream out) {
         if (parts[1].equalsIgnoreCase("listening-port")) {
