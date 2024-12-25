@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class Replica {
@@ -56,7 +57,7 @@ public class Replica {
 
                 // Process commands from master
                 while ((response = in.readLine()) != null) {
-                    logger.info("Received command from master: " + response);
+                    logger.info("Received command from master: " + Arrays.toString(response.getBytes()));
                     ProtocolParser.parse(response, out);
                 }
 
