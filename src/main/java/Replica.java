@@ -77,10 +77,16 @@ public class Replica {
                 logger.info("Received response from master: " + response);
 
                 // Process commands from master
+                StringBuilder commandBuffer = new StringBuilder();
                 while ((bytesRead = in.read(buffer)) != -1) {
-                    String command = new String(buffer, 0, bytesRead);
-                    logger.info("Received command from master: " + command);
-                    ProtocolParser.parse(command, out);
+                    commandBuffer.append(new String(buffer, 0, bytesRead));
+                    String[] commands = commandBuffer.toString().split("\r\n\r\n");
+                    for (int i = 0; i < commands.length - 1; i++) {
+                        String command = commands[i] + "\r\n";
+                        logger.info("Received command from master: " + command);
+                        ProtocolParser.parse(command, out);
+                    }
+                    commandBuffer = new StringBuilder(commands[commands.length - 1]);
                 }
 
             } catch (IOException e) {
