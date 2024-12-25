@@ -53,15 +53,27 @@ public class Master {
     }
 
     public synchronized void propagateCommand(String command) {
-        logger.info("Propagating command: " + command + " to all replicas.");
-        for (OutputStream out : replicaStreams) {
-            try {
-                out.write(command.getBytes());
-                out.flush();
-            } catch (IOException e) {
-                logger.severe("Failed to send command to a replica: " + e.getMessage());
+//        logger.info("Propagating command: " + command + " to all replicas.");
+//        for (OutputStream out : replicaStreams) {
+//            try {
+//                out.write(command.getBytes());
+//                out.flush();
+//            } catch (IOException e) {
+//                logger.severe("Failed to send command to a replica: " + e.getMessage());
+//            }
+//        }
+        threadPool.submit(() -> {
+            synchronized (replicaStreams) {
+                for (OutputStream out : replicaStreams) {
+                    try {
+                        out.write(command.getBytes());
+                        out.flush();
+                    } catch (IOException e) {
+                        logger.severe("Failed to send command to a replica: " + e.getMessage());
+                    }
+                }
             }
-        }
+        });
     }
 
 
@@ -90,7 +102,7 @@ public class Master {
             out.write(contents);
             out.flush();
 
-            addReplica(out);
+            //addReplica(out);
 
             return null;
         }
