@@ -10,11 +10,13 @@ public class Replica {
     private final String masterHost;
     private final int masterPort;
     private final int port;
+    private final Cache cache;
 
     public Replica(String masterHost, int masterPort, int port) {
         this.masterHost = masterHost;
         this.masterPort = masterPort;
         this.port = port;
+        this.cache = Cache.getInstance();
     }
 
     public void start() {
@@ -28,7 +30,7 @@ public class Replica {
             // Accept client connections
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                new Thread(new ClientTask(clientSocket, null)).start(); // Pass null as master since it's a replica
+                new Thread(new ReplicaTask(clientSocket, this)).start(); // Pass null as master since it's a replica
             }
 
         } catch (IOException e) {
