@@ -30,7 +30,7 @@ public class Replica {
             // Accept client connections
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                new Thread(new ReplicaTask(clientSocket, this)).start(); // Pass null as master since it's a replica
+                new Thread(new ReplicaTask(clientSocket, this)).start();
             }
 
         } catch (IOException e) {
@@ -86,7 +86,7 @@ public class Replica {
                     for (int i = 0; i < commands.length - 1; i++) {
                         String command = commands[i] + "\r\n";
                         logger.info("Received command from master: " + command);
-                        ProtocolParser.parse(command, out);
+                        handleCommand(command);
                     }
                     commandBuffer = new StringBuilder(commands[commands.length - 1]);
                 }
@@ -101,5 +101,30 @@ public class Replica {
                 }
             }
         }
+    }
+
+    public void handleCommand(String command) {
+        String[] tokens = command.split("\r\n");
+        if (tokens.length >= 5 && "SET".equalsIgnoreCase(tokens[2])) {
+            String key = tokens[4];
+            String value = tokens[6];
+            cache.set(key, value);
+            logger.info("Set " + key + " to " + value);
+        } else {
+            logger.warning("Unsupported command: " + command);
+        }
+    }
+
+    public String processClientCommand(String command) {
+        String[] tokens = command.split("\r\n");
+        if (tokens.length >= 3 && "GET".equalsIgnoreCase(tokens[2])) {
+            String key = tokens[4];
+            String value = cache.get(key);
+            if (value == null) {
+                return "$-1\r\n";
+            }
+            return "$" + value.length() + "\r\n" + value + "\r\n";
+        }
+        return "-ERR unknown command\r\n";
     }
 }

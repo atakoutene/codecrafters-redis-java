@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 public class ReplicaTask implements Runnable {
     private final Socket clientSocket;
     private final Replica replica;
-    private static final Logger logger = Logger.getLogger(ClientTask.class.getName());
+    private static final Logger logger = Logger.getLogger(ReplicaTask.class.getName());
 
     public ReplicaTask(Socket clientSocket, Replica replica) {
         this.clientSocket = clientSocket;
@@ -26,7 +26,7 @@ public class ReplicaTask implements Runnable {
             while ((bytesRead = in.read(bytes)) != -1) {
                 String command = new String(bytes, 0, bytesRead);
                 logger.info("Received command: " + command);
-                String response =ProtocolParser.parse(command, out);
+                String response = replica.processClientCommand(command);
                 if (response != null) {
                     out.write(response.getBytes());
                     out.flush();
