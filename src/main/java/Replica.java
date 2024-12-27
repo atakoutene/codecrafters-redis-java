@@ -10,13 +10,11 @@ public class Replica {
     private final String masterHost;
     private final int masterPort;
     private final int port;
-    private final Cache cache;
 
     public Replica(String masterHost, int masterPort, int port) {
         this.masterHost = masterHost;
         this.masterPort = masterPort;
         this.port = port;
-        this.cache = Cache.getInstance();
     }
 
     public void start() {
@@ -30,7 +28,7 @@ public class Replica {
             // Accept client connections
             while (true) {
                 Socket clientSocket = serverSocket.accept();
-                new Thread(new ReplicaTask(clientSocket, this)).start();
+                new Thread(new ClientTask(clientSocket, null)).start(); // Pass null as master since it's a replica
             }
 
         } catch (IOException e) {
@@ -78,7 +76,7 @@ public class Replica {
                 response = new String(buffer, 0, bytesRead);
                 logger.info("Received response from master: " + response);
 
-                // Process commands from master
+                // Process FULLRESYNC and RDB file
                 StringBuilder commandBuffer = new StringBuilder();
                 while ((bytesRead = in.read(buffer)) != -1) {
                     commandBuffer.append(new String(buffer, 0, bytesRead));
@@ -86,7 +84,20 @@ public class Replica {
                     for (int i = 0; i < commands.length - 1; i++) {
                         String command = commands[i] + "\r\n";
                         logger.info("Received command from master: " + command);
-                        handleCommand(command);
+                        if (command.startsWith("+FULLRESYNC")) {
+                            // Handle FULLRESYNC command
+                            logger.info("Handling FULLRESYNC command");
+                            // Extract RDB file and process it
+                            // Assuming RDB file is received as a bulk string
+                            int rdbStartIndex = command.indexOf("\r\n$") + 3;
+                            int rdbLength = Integer.parseInt(command.substring(rdbStartIndex, command.indexOf("\r\n", rdbStartIndex)));
+                            String rdbData = command.substring(command.indexOf("\r\n", rdbStartIndex) + 2, rdbStartIndex + 2 + rdbLength);
+                            // Process RDB data (this is a placeholder, actual RDB processing logic needed)
+                            logger.info("Received RDB data of length: " + rdbLength);
+                        } else {
+                            // Process other commands (e.g., SET commands)
+                            ProtocolParser.parse(command, out);
+                        }
                     }
                     commandBuffer = new StringBuilder(commands[commands.length - 1]);
                 }
@@ -101,30 +112,5 @@ public class Replica {
                 }
             }
         }
-    }
-
-    public void handleCommand(String command) {
-        String[] tokens = command.split("\r\n");
-        if (tokens.length >= 5 && "SET".equalsIgnoreCase(tokens[2])) {
-            String key = tokens[4];
-            String value = tokens[6];
-            cache.set(key, value);
-            logger.info("Set " + key + " to " + value);
-        } else {
-            logger.warning("Unsupported command: " + command);
-        }
-    }
-
-    public String processClientCommand(String command) {
-        String[] tokens = command.split("\r\n");
-        if (tokens.length >= 3 && "GET".equalsIgnoreCase(tokens[2])) {
-            String key = tokens[4];
-            String value = cache.get(key);
-            if (value == null) {
-                return "$-1\r\n";
-            }
-            return "$" + value.length() + "\r\n" + value + "\r\n";
-        }
-        return "-ERR unknown command\r\n";
     }
 }
