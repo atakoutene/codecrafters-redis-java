@@ -1,3 +1,6 @@
+package Redis;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
@@ -14,6 +17,33 @@ public class ProtocolParser {
 
     // Get the persistent storage instance
     private static final Config CONFIG = Config.getInstance();
+
+    public static String encodeCommand(String[] args) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("*").append(args.length).append("\r\n");
+        for (String arg : args) {
+            sb.append("$").append(arg.length()).append("\r\n");
+            sb.append(arg).append("\r\n");
+        }
+        return sb.toString();
+    }
+
+    public static String[] decodeCommand(BufferedReader reader) throws IOException {
+        String line = reader.readLine();
+        if (line == null || !line.startsWith("*")) {
+            return null;
+        }
+
+        int numArgs = Integer.parseInt(line.substring(1));
+        String[] args = new String[numArgs];
+
+        for (int i = 0; i < numArgs; i++) {
+            reader.readLine(); // Skip the length line
+            args[i] = reader.readLine();
+        }
+
+        return args;
+    }
 
     public static String parse(String command, OutputStream out) throws IOException {
         logger.info("Received command: " + command);

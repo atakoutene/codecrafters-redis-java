@@ -1,3 +1,5 @@
+package Redis;
+
 public enum CommandType {
     ECHO,
     PING,

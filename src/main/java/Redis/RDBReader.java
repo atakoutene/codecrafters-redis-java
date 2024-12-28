@@ -1,3 +1,5 @@
+package Redis;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -67,7 +69,7 @@ public class RDBReader {
     private static void readIndex(FileInputStream fis) throws IOException {
         // Read the index
         int dbIndex = fis.read();
-        logger.info("Cache index: " + dbIndex);
+        logger.info("Redis.Cache index: " + dbIndex);
 
         cache.setId(dbIndex);
     }

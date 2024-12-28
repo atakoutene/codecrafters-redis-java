@@ -1,3 +1,5 @@
+package Redis;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -28,4 +30,12 @@ public class Config {
     }
 
 
+    public int getPort() {
+        String port = getConfig("port");
+        if (port == null) {
+            logger.warning("Port not set, using default port 6379");
+            return 6379;
+        }
+        return Integer.parseInt(port);
+    }
 }

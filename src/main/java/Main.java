@@ -1,3 +1,8 @@
+import Redis.Config;
+import Redis.Master;
+import Redis.RDBReader;
+import Redis.Replica;
+
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -26,6 +31,8 @@ public class Main {
                 processArgument(arg, value);
             }
         }
+        //set port in config
+        Config.getInstance().setConfig("port", String.valueOf(port));
 
         String dbFileName = Config.getInstance().getConfig("dbfilename");
         String dir = Config.getInstance().getConfig("dir");

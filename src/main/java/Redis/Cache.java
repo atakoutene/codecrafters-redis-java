@@ -1,3 +1,5 @@
+package Redis;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +65,7 @@ public class Cache {
         this.keyToValueWithExpiry.put(key, valueWithExpiry);
 //        scheduler.schedule(() -> {
 //            this.keyToValue.remove(key);
-//            Logger logger = Logger.getLogger(Cache.class.getName());
+//            Logger logger = Logger.getLogger(Redis.Cache.class.getName());
 //            logger.info("Removing key: " + key + " after " + delay + " " + TimeUnit.MILLISECONDS);
 //        }, delay, TimeUnit.MILLISECONDS);
     }

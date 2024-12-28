@@ -1,3 +1,5 @@
+package Redis;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -23,7 +25,7 @@ public class Master {
     }
 
     public void start() {
-        logger.info("Master started on port: " + port);
+        logger.info("Redis.Master started on port: " + port);
 
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             serverSocket.setReuseAddress(true);
